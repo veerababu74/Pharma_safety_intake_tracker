@@ -4,7 +4,7 @@ All files here are **synthetic**. No real patients, no real PII, no medical advi
 
 ## Full how-to (roles + Chroma indexing)
 
-See **[`docs/HOW_TO_USE.md`](../docs/HOW_TO_USE.md)** for:
+See **`never_push_to_git/docs/HOW_TO_USE.md`** (local only) for:
 
 1. Index these files into **ChromaDB** with `index_to_chromadb.py`
 2. Operator raises 5 reports → reviewer triage → approver HITL

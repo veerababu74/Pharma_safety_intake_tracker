@@ -94,10 +94,10 @@ Report written to `backend/evaluation/last_eval_report.json`.
 See `sample_data/` (txt/pdf/docx/csv/json).
 
 **End-to-end guide (Chroma index → operator 5 reports → reviewer → approver → Agent/RAG):**  
-[`docs/HOW_TO_USE.md`](docs/HOW_TO_USE.md)
+`never_push_to_git/docs/HOW_TO_USE.md` (local only)
 
 **Easiest explanation (toy-shop story + visual flows):**  
-[`docs/SIMPLE_STORY_GUIDE.md`](docs/SIMPLE_STORY_GUIDE.md)
+`never_push_to_git/docs/SIMPLE_STORY_GUIDE.md` (local only)
 
 ```bash
 cd backend
@@ -136,8 +136,8 @@ Frontend loads API base from `VITE_API_BASE_URL`, else hardcoded `http://127.0.0
 | F12 | HITL on close | HITL Approvals · approve/reject-close |
 | F13 | Circuit breaker | Agent tools · `tests/test_agent_breaker.py` |
 | G1 | `CLAUDE.md` | repo root |
-| G2 | Plan Mode plan | `docs/IMPLEMENTATION_PLAN.md` |
+| G2 | Plan Mode plan | `never_push_to_git/docs/IMPLEMENTATION_PLAN.md` (local) |
 | G3 | Review skill | `.claude/skills/pharma-intake-review/SKILL.md` |
 | G4 | Governance hook + log | `.cursor/hooks.json` · `.governance/edit-audit.jsonl` |
 | G5 | Automated tests | `cd backend && pytest` |
-| G6 | Demo evidence | `docs/DEMO_WALKTHROUGH.md` |
+| G6 | Demo evidence | `never_push_to_git/docs/DEMO_WALKTHROUGH.md` (local) |

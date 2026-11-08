@@ -1,6 +1,6 @@
 # Claude / Cursor AI governance pack
 
-See **[`docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md`](../docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md)** for the full manager-facing walkthrough.
+See **`never_push_to_git/docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md`** (local only, not in git) for the full manager-facing walkthrough.
 
 Quick paths:
 - Skill: `skills/pharma-intake-review/SKILL.md`

@@ -43,6 +43,6 @@ This constitution is **always on**. Task-specific review lives in skills/subagen
 | Cursor hooks | `.cursor/hooks.json` → `.cursor/hooks/governance_edit_audit.py` |
 | Edit audit log | `.governance/edit-audit.jsonl` |
 | Skill evidence log | `.governance/skill-invocations.jsonl` |
-| Full walkthrough | `docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md` |
+| Full walkthrough | `never_push_to_git/docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md` (local only) |
 
 When reviewing intake/RAG/agent changes, invoke **pharma-intake-review** (or the **pharma-reviewer** subagent) and follow its checklist.
