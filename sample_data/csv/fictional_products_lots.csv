@@ -1,0 +1,7 @@
+product_code,product_name,strength,dosage_form,batch_lot_number,mfg_date,expiry_date,pack_size,notes
+NC-50,NeuroCalm 50mg,50mg,Tablet,LOT-88392,2025-11-01,2027-10-31,30,"Fictional lot used in packaging seal complaint demos"
+NC-50,NeuroCalm 50mg,50mg,Tablet,LOT-88401,2025-12-15,2027-12-14,30,"Fictional lot used in carton count mismatch demo"
+CS-10,CardioSafe 10mg,10mg,Tablet,LOT-12045,2026-01-10,2028-01-09,28,"Fictional lot linked to AE dizziness training case"
+CS-10,CardioSafe 10mg,10mg,Tablet,LOT-12099,2026-03-01,2028-02-28,28,"Fictional lot linked to fatigue training case"
+PA-1,PainAway Gel 1%,1%,Topical gel,LOT-55101,2025-09-20,2027-09-19,50g,"Fictional lot for label smudge and skin redness demos"
+AC-5,AllergyClear 5mg,5mg,Tablet,LOT-33018,2026-02-05,2028-02-04,30,"Fictional lot for desiccant and nausea demos"

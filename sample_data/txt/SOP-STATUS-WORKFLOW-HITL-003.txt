@@ -1,0 +1,44 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL)
+Document ID: SOP-STATUS-WORKFLOW-HITL-003
+Title: Status Lifecycle and Human-in-the-Loop Close Gate
+Version: 1.0 (Training Prototype Only)
+Effective Date: 2026-02-15
+Classification: Synthetic / Non-Clinical / Non-Regulatory
+
+1. PURPOSE
+Define allowed status transitions for fictional intake records.
+
+2. ALLOWED STATUS VALUES
+- New
+- In Review
+- Closed
+
+3. ALLOWED TRANSITIONS
+- New -> In Review
+- In Review -> Closed (ONLY after Human-in-the-Loop approval)
+
+4. FORBIDDEN TRANSITIONS
+- New -> Closed
+- Closed -> New
+- Closed -> In Review
+
+5. HITL CLOSE GATE
+When a reviewer requests Close from In Review:
+5.1 Case is marked pending_close but remains In Review.
+5.2 A second human approver must confirm close.
+5.3 Approval is written to the local audit trail.
+5.4 Only then status becomes Closed.
+
+6. WORKED EXAMPLE
+REF-2026-0003 (PainAway Gel label smudge):
+- Created as New
+- Moved to In Review by Arjun
+- Close requested by Arjun
+- HITL approved by Priya
+- Final status Closed
+
+7. NOTE
+Closing a training record is an intake triage completion flag only.
+It is NOT a medical or regulatory decision.
+
+END OF DOCUMENT

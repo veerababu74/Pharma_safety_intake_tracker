@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "python .cursor/hooks/governance_edit_audit.py",
+        "timeout": 15
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "python .cursor/hooks/governance_edit_audit.py",
+        "matcher": "Write|StrReplace|EditNotebook|Delete|Shell",
+        "timeout": 15
+      }
+    ]
+  }
+}

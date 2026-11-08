@@ -1,0 +1,1 @@
+{"timestamp": "2026-11-07T06:38:28.646664+00:00", "skill": "pharma-intake-review", "verdict": "PASS", "files_touched": ["CLAUDE.md", ".claude/skills/pharma-intake-review/SKILL.md", ".claude/agents/pharma-reviewer.md", "docs/GOVERNANCE_CLAUDE_SKILLS_HOOKS.md"], "note": "End-to-end governance pack", "source": "claude_skill_invocation"}

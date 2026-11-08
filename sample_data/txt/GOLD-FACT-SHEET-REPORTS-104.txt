@@ -1,0 +1,50 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL / SYNTHETIC)
+Document ID: GOLD-FACT-SHEET-REPORTS-104
+Title: Golden historical digest of ten fictional intake reports
+Version: 1.0 | Classification: Synthetic / Non-Clinical
+Purpose: Ground hybrid RAG answers about specific REF IDs, lots, products, and statuses. This is not a regulatory case file. Do not assess causality, recommend treatment, or decide reportability.
+
+FACT REF-2026-0001
+Reference REF-2026-0001 is a Product Quality Complaint for NeuroCalm 50mg, lot LOT-88392. Date received 2026-10-12. Reporter type Consumer. Status New. Description: bottle seal was broken on arrival, no tablets appeared missing, packaging dented at the cap ring. No adverse-event onset date is stored on this row.
+
+FACT REF-2026-0002
+Reference REF-2026-0002 is a Suspected Adverse Event for CardioSafe 10mg, lot LOT-12045. Date received 2026-10-14. Reporter type Healthcare Professional. Status In Review. Event description: Dizziness / lightheadedness. Event onset date 2026-10-13. Narrative: fictional HCP reports transient dizziness after first doses. No real patient identifiers are recorded. No causality conclusion is stored.
+
+FACT REF-2026-0003
+Reference REF-2026-0003 is a Product Quality Complaint for PainAway Gel 1%, lot LOT-55101. Date received 2026-10-18. Reporter type Pharmacist. Status Closed. Description: tube label smudged; strength text partially unreadable under pharmacy light.
+
+FACT REF-2026-0004
+Reference REF-2026-0004 is a Suspected Adverse Event for NeuroCalm 50mg, lot LOT-88392. Date received 2026-10-20. Reporter type Consumer. Status New. Event description: Mild headache. Event onset date 2026-10-19. Narrative: reporter describes mild headache one day after starting the fictional product. No identifiers stored.
+
+FACT REF-2026-0005
+Reference REF-2026-0005 is a Product Quality Complaint for CardioSafe 10mg, lot LOT-12045. Date received 2026-10-22. Reporter type Wholesaler. Status In Review. Description: shipper carton crushed; 3 blister packs showed corner creases; count intact.
+
+FACT REF-2026-0006
+Reference REF-2026-0006 is a Suspected Adverse Event for AllergyClear 5mg, lot LOT-33018. Date received 2026-10-25. Reporter type Healthcare Professional. Status New. Event description: Nausea. Event onset date 2026-10-24. Narrative: fictional clinic notes short-lived nausea after an evening dose. Training record only.
+
+FACT REF-2026-0007
+Reference REF-2026-0007 is a Product Quality Complaint for AllergyClear 5mg, lot LOT-33018. Date received 2026-10-27. Reporter type Consumer. Status New. Description: desiccant pouch found loose inside the bottle; tablets visually intact.
+
+FACT REF-2026-0008
+Reference REF-2026-0008 is a Suspected Adverse Event for PainAway Gel 1%, lot LOT-55101. Date received 2026-10-28. Reporter type Consumer. Status In Review. Event description: Skin redness at application site. Event onset date 2026-10-27. Narrative: reporter mentions localized skin redness after topical use. Fictional only.
+
+FACT REF-2026-0009
+Reference REF-2026-0009 is a Product Quality Complaint for NeuroCalm 50mg, lot LOT-88401. Date received 2026-10-30. Reporter type Pharmacist. Status Closed. Description: incorrect secondary carton count listed as 28 instead of 30 on the outer shipper label.
+
+FACT REF-2026-0010
+Reference REF-2026-0010 is a Suspected Adverse Event for CardioSafe 10mg, lot LOT-12099. Date received 2026-11-01. Reporter type Healthcare Professional. Status New. Event description: Unusual fatigue. Event onset date 2026-10-29. Narrative: fictional report of unusual fatigue during the first week. No clinical decision is recorded in the app.
+
+LOT CROSSWALK
+LOT-88392 appears on REF-2026-0001 (broken seal, Product Quality Complaint, New) and REF-2026-0004 (mild headache, Suspected Adverse Event, New). Both rows are NeuroCalm 50mg.
+LOT-12045 appears on REF-2026-0002 (dizziness, Suspected Adverse Event, In Review) and REF-2026-0005 (crushed shipper, Product Quality Complaint, In Review). Both rows are CardioSafe 10mg.
+LOT-33018 appears on REF-2026-0006 (nausea, Suspected Adverse Event, New) and REF-2026-0007 (loose desiccant, Product Quality Complaint, New). Both rows are AllergyClear 5mg.
+LOT-55101 appears on REF-2026-0003 (smudged tube label, Product Quality Complaint, Closed) and REF-2026-0008 (skin redness, Suspected Adverse Event, In Review). Both rows are PainAway Gel 1%.
+LOT-88401 appears only on REF-2026-0009 (carton count 28 instead of 30, Product Quality Complaint, Closed), product NeuroCalm 50mg.
+LOT-12099 appears only on REF-2026-0010 (unusual fatigue, Suspected Adverse Event, New), product CardioSafe 10mg.
+
+STATUS ROLLUP
+Reports currently New: REF-2026-0001, REF-2026-0004, REF-2026-0006, REF-2026-0007, REF-2026-0010.
+Reports currently In Review: REF-2026-0002, REF-2026-0005, REF-2026-0008.
+Reports currently Closed: REF-2026-0003, REF-2026-0009.
+
+END OF DOCUMENT — Synthetic data only. No real PII. No causality, treatment, or reportability decisions.
