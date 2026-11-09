@@ -93,6 +93,21 @@ Report written to `backend/evaluation/last_eval_report.json`.
 
 See `sample_data/` (txt/pdf/docx/csv/json).
 
+**Business problem & solution (stakeholder story + visuals):**  
+[`docs/BUSINESS_PROBLEM_AND_SOLUTION.md`](docs/BUSINESS_PROBLEM_AND_SOLUTION.md)
+
+**Manager demo walkthrough (live script + scenarios):**  
+[`docs/MANAGER_DEMO_WALKTHROUGH.md`](docs/MANAGER_DEMO_WALKTHROUGH.md)
+
+**Canva presentation guide (slide-by-slide deck script):**  
+[`docs/CANVA_PRESENTATION_GUIDE.md`](docs/CANVA_PRESENTATION_GUIDE.md)
+
+**Backend docs (architecture · auth · RAG · agent · tracing · E2E):**  
+[`docs/backend/README.md`](docs/backend/README.md)
+
+**Frontend docs (UI architecture · roles · workflow · RAG/Agent · monitoring · E2E):**  
+[`docs/frontend/README.md`](docs/frontend/README.md)
+
 **End-to-end guide (Chroma index → operator 5 reports → reviewer → approver → Agent/RAG):**  
 `never_push_to_git/docs/HOW_TO_USE.md` (local only)
 
