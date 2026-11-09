@@ -48,8 +48,9 @@ Examples (message => label):
 "good afternoon" => direct
 "bye" => direct
 
-# intake (create new report)
+# intake (create new report) — create verbs beat the word "complaint"
 "create a product quality complaint" => intake
+"create a product quality complaint for AllergyClear 5mg LOT-33018" => intake
 "submit intake for NeuroCalm seal broken" => intake
 "new adverse event report for dizziness" => intake
 "file a PQC for LOT-88392" => intake
@@ -63,6 +64,9 @@ Examples (message => label):
 "start review for REF-2026-0005" => status
 "please close this case REF-2026-0009" => status
 "approve close for REF-2026-0003" => status
+"complete the review — notes: everything checked" => status
+"move to approver" => status
+"send to approver" => status
 
 # lookup existing reports (READ status/details — not an update)
 "get report REF-2026-0001" => lookup
@@ -75,6 +79,9 @@ Examples (message => label):
 "what is the status of REF-2026-0009" => lookup
 "REF-2026-0009 status" => lookup
 "is REF-2026-0009 closed" => lookup
+"give me the LOT-88392 details" => lookup
+"LOT-33018" => lookup
+"show reports for LOT-55101" => lookup
 
 # rag / SOP / historical knowledge
 "what does the SOP say about lot quarantine?" => rag
@@ -120,6 +127,8 @@ def build_response_draft_prompt(
         "- Include key IDs/status from facts when present — never invent status\n"
         "- ONLY valid statuses are: New, In Review, Closed (never 'Review Completed')\n"
         "- If this is a lookup, do NOT claim a review started or status changed\n"
+        "- If this is intake_needs_args or intake_validation_error, do NOT invent a REF "
+        "or claim the report was created\n"
         "- If facts say validation failed, explain what to fix\n"
         "- If HITL is pending and auto_approved is not true, explain approval is needed\n"
         "- If auto_approved is true, say close completed because the user can approve\n"

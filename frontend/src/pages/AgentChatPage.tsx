@@ -121,6 +121,12 @@ export function AgentChatPage() {
   async function sendMessage(text: string) {
     const message = text.trim();
     if (!message || busy) return;
+    const optimisticId = -Date.now();
+    setInput('');
+    setMessages((prev) => [
+      ...prev,
+      { id: optimisticId, role: 'user', content: message },
+    ]);
     setBusy(true);
     try {
       let active = sessionId;
@@ -139,9 +145,10 @@ export function AgentChatPage() {
       if (res.interrupted) {
         toast.info('Approval needed', res.hitl?.hitl_request_id || 'Waiting for HITL approval');
       }
-      setInput('');
       await refreshSessions(active);
     } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      setInput(message);
       toast.error('Chat failed', err instanceof Error ? err.message : 'Please try again');
     } finally {
       setBusy(false);
@@ -177,14 +184,13 @@ export function AgentChatPage() {
       />
 
       <div className={`chat-workspace ${sessionsOpen ? 'sessions-open' : 'sessions-closed'}`}>
-        {sessionsOpen ? (
-          <button
-            type="button"
-            className="chat-sessions-backdrop"
-            aria-label="Close sessions"
-            onClick={() => setSessionsOpen(false)}
-          />
-        ) : null}
+        <button
+          type="button"
+          className="chat-sessions-backdrop"
+          aria-label="Close sessions"
+          tabIndex={sessionsOpen ? 0 : -1}
+          onClick={() => setSessionsOpen(false)}
+        />
 
         <aside className="chat-sessions" aria-hidden={!sessionsOpen}>
           <div className="chat-sessions-head">
@@ -271,63 +277,67 @@ export function AgentChatPage() {
             </Button>
           </div>
 
-          <div className="chat-log" ref={chatLogRef}>
-            {messages.map((m) => (
-              <div key={m.id} className={`chat-bubble chat-${m.role}`}>
-                <div className="chat-meta">
-                  <span>{m.role === 'user' ? 'You' : m.role === 'assistant' ? 'Assistant' : m.role}</span>
-                  {m.intent ? <span className="chat-pill">{m.intent}</span> : null}
+          <div className="chat-stage-body">
+            <div className="chat-log" ref={chatLogRef}>
+              {messages.map((m) => (
+                <div key={m.id} className={`chat-bubble chat-${m.role}`}>
+                  <div className="chat-meta">
+                    <span>{m.role === 'user' ? 'You' : m.role === 'assistant' ? 'Assistant' : m.role}</span>
+                    {m.role === 'assistant' && m.intent ? (
+                      <span className="chat-pill">{m.intent}</span>
+                    ) : null}
+                  </div>
+                  <ChatMarkdown text={m.content} />
                 </div>
-                <ChatMarkdown text={m.content} />
-              </div>
-            ))}
-            {busy ? (
-              <div className="chat-bubble chat-assistant" aria-live="polite" aria-label="Working">
-                <div className="chat-typing">
-                  <span /><span /><span />
+              ))}
+              {busy ? (
+                <div className="chat-bubble chat-assistant" aria-live="polite" aria-label="Working">
+                  <div className="chat-typing">
+                    <span /><span /><span />
+                  </div>
                 </div>
-              </div>
-            ) : null}
-            {!messages.length && !busy ? (
-              <div className="chat-empty">
-                <p className="chat-empty-kicker">LangGraph agent</p>
-                <strong>Ready when you are</strong>
-                <p className="muted">Ask about intake, status changes, or SOP guidance. Approvals pause here when needed.</p>
-                <div className="chat-suggestions">
-                  {SUGGESTIONS.map((s) => (
-                    <button key={s} type="button" className="chat-chip" onClick={() => sendMessage(s)}>
-                      {s}
-                    </button>
-                  ))}
+              ) : null}
+              {!messages.length && !busy ? (
+                <div className="chat-empty">
+                  <p className="chat-empty-kicker">LangGraph agent</p>
+                  <strong>Ready when you are</strong>
+                  <p className="muted">Ask about intake, status changes, or SOP guidance. Approvals pause here when needed.</p>
+                  <div className="chat-suggestions">
+                    {SUGGESTIONS.map((s) => (
+                      <button key={s} type="button" className="chat-chip" onClick={() => sendMessage(s)}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
+              ) : null}
+            </div>
 
-          <form className="chat-composer" onSubmit={send}>
-            <div className="chat-composer-shell">
-              <TextArea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                rows={1}
-                required
-                aria-label="Message"
-                placeholder="Message the agent…"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage(input).catch(() => undefined);
-                  }
-                }}
-              />
-              <Button type="submit" disabled={busy || !input.trim()}>
-                {busy ? 'Running…' : 'Send'}
-              </Button>
-            </div>
-            <div className="chat-composer-meta">
-              <p className="muted chat-composer-hint">Enter to send · Shift+Enter for a new line</p>
-            </div>
-          </form>
+            <form className="chat-composer" onSubmit={send}>
+              <div className="chat-composer-shell">
+                <TextArea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  rows={1}
+                  required
+                  aria-label="Message"
+                  placeholder="Message the agent…"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage(input).catch(() => undefined);
+                    }
+                  }}
+                />
+                <Button type="submit" disabled={busy || !input.trim()}>
+                  {busy ? 'Running…' : 'Send'}
+                </Button>
+              </div>
+              <div className="chat-composer-meta">
+                <p className="muted chat-composer-hint">Enter to send · Shift+Enter for a new line</p>
+              </div>
+            </form>
+          </div>
         </section>
       </div>
     </div>

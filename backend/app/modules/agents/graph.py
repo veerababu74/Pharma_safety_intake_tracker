@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import date
 from typing import Any, Literal, TypedDict
 
+from langgraph.config import get_config
 from langgraph.graph import END, StateGraph
 from langgraph.types import Command, interrupt
 from pydantic import ValidationError
@@ -23,6 +25,7 @@ from app.modules.agents.prompts import (
 from app.modules.agents.response_llm import draft_user_response, facts_json, social_agent_reply
 from app.modules.agents.tool_backend import get_agent_tool_map, invoke_approve_close
 from app.modules.agents.tools import (
+    LOT_RE,
     SubmitIntakeInput,
     UpdateStatusInput,
 )
@@ -32,6 +35,210 @@ from app.services.report_service import ReportService
 logger = get_logger("langgraph_agent")
 
 Intent = Literal["direct", "rag", "intake", "status", "lookup", "unknown"]
+
+_UNICODE_DASHES = str.maketrans(
+    {
+        "\u2010": "-",
+        "\u2011": "-",
+        "\u2012": "-",
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2212": "-",
+    }
+)
+_LOT_TOKEN_RE = re.compile(r"\bLOT-\d+\b", re.IGNORECASE)
+_REPORTER_RE = re.compile(
+    r"reporter(?:\s+type)?\s*[:=]?\s*"
+    r"(Consumer|Healthcare Professional|Pharmacist|Other)\b",
+    re.IGNORECASE,
+)
+_DATE_RECEIVED_RE = re.compile(
+    r"(?:date\s+received|received(?:\s+date)?|date)\s*[:=]?\s*"
+    r"(\d{4}-\d{2}-\d{2}|today)\b",
+    re.IGNORECASE,
+)
+_PRODUCT_BEFORE_LOT_RE = re.compile(
+    r"\bfor\s+(.+?)\s+(?=LOT-\d+)",
+    re.IGNORECASE,
+)
+_PRODUCT_NAMED_RE = re.compile(
+    r"product(?:\s+name)?\s*[:=]\s*(.+?)(?=\s+LOT-\d+|\s*[,.]|$)",
+    re.IGNORECASE,
+)
+_DESC_AFTER_LOT_RE = re.compile(
+    r"LOT-\d+\s*[,:\-]?\s*(.+?)(?="
+    r"\.\s*Reporter|\.\s*Date\s+received|Reporter(?:\s+type)?|"
+    r"Date\s+received|Event\s+description|Onset|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+_EVENT_DESC_RE = re.compile(
+    r"event\s+description\s*[:=]?\s*(.+?)(?=\.\s*Onset|\.\s*Reporter|Onset|Reporter|Date\s+received|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+_ONSET_RE = re.compile(
+    r"(?:event\s+)?onset(?:\s+date)?\s*[:=]?\s*(\d{4}-\d{2}-\d{2})\b",
+    re.IGNORECASE,
+)
+
+
+def _normalize_message(text: str) -> str:
+    """ASCII-normalize unicode dashes so LOT‑1111 still tokenizes."""
+    return (text or "").translate(_UNICODE_DASHES)
+
+
+def _soft_message(message: str) -> str:
+    text = _normalize_message(message).lower().strip()
+    soft = re.sub(r"[^\w\s\-]", " ", text)
+    return re.sub(r"\s+", " ", soft).strip()
+
+
+def _is_intake_create_request(soft: str) -> bool:
+    return any(
+        k in soft
+        for k in (
+            "create",
+            "submit",
+            "intake",
+            "new report",
+            "file a",
+            "file pqc",
+            "log a",
+            "log pqc",
+            "open a suspected",
+            "open an adverse",
+            "open a pqc",
+            "i need to log",
+        )
+    )
+
+
+def _is_lot_lookup_request(soft: str) -> bool:
+    """Read-only lot detail / find-by-lot questions (not SOP guidance, not create)."""
+    if _is_intake_create_request(soft):
+        return False
+    if any(
+        k in soft
+        for k in (
+            "sop",
+            "quarantine",
+            "what should",
+            "guidance",
+            "how do",
+            "policy",
+            "historical",
+            "packaging complaint",
+        )
+    ):
+        return False
+    if re.fullmatch(r"lot-\d+", soft):
+        return True
+    if _LOT_TOKEN_RE.search(soft) and any(
+        k in soft
+        for k in (
+            "details",
+            "give me",
+            "show",
+            "find",
+            "lookup",
+            "look up",
+            "status",
+            "reports for",
+            "about",
+            "for lot",
+        )
+    ):
+        return True
+    return False
+
+
+def _parse_intake_from_message(message: str) -> dict[str, Any] | None:
+    """Best-effort NL field extraction for prose intake creates."""
+    text = _normalize_message(message).strip()
+    if not text:
+        return None
+    soft = re.sub(r"\s+", " ", text)
+    lower = soft.lower()
+    args: dict[str, Any] = {}
+
+    if any(
+        k in lower
+        for k in (
+            "product quality complaint",
+            "product quality",
+            "packaging complaint",
+            "quality complaint",
+            " pqc ",
+            "pqc for",
+            "file a pqc",
+            "log a pqc",
+            "create a pqc",
+            "submit a pqc",
+        )
+    ) or lower.startswith("pqc ") or "create a pqc" in lower:
+        args["report_type"] = "Product Quality Complaint"
+    elif any(
+        k in lower
+        for k in (
+            "suspected adverse event",
+            "adverse event",
+            "suspected ae",
+            "open an adverse",
+            "open a suspected",
+        )
+    ):
+        args["report_type"] = "Suspected Adverse Event"
+
+    lot_m = _LOT_TOKEN_RE.search(soft)
+    if lot_m:
+        args["batch_lot_number"] = lot_m.group(0).upper()
+
+    prod_m = _PRODUCT_BEFORE_LOT_RE.search(soft) or _PRODUCT_NAMED_RE.search(soft)
+    if prod_m:
+        product = re.sub(r"\s+", " ", prod_m.group(1)).strip(" .,;:-")
+        # Drop leading report-type phrasing stuck in the capture
+        product = re.sub(
+            r"^(?:a\s+)?(?:product\s+quality\s+complaint|packaging\s+complaint|"
+            r"quality\s+complaint|pqc|suspected\s+adverse\s+event|adverse\s+event)\s+",
+            "",
+            product,
+            flags=re.IGNORECASE,
+        ).strip(" .,;:-")
+        if product:
+            args["product_name"] = product
+
+    rep_m = _REPORTER_RE.search(soft)
+    if rep_m:
+        canon = {
+            "consumer": "Consumer",
+            "healthcare professional": "Healthcare Professional",
+            "pharmacist": "Pharmacist",
+            "other": "Other",
+        }
+        args["reporter_type"] = canon[rep_m.group(1).lower()]
+
+    date_m = _DATE_RECEIVED_RE.search(soft)
+    if date_m:
+        raw_date = date_m.group(1).lower()
+        args["date_received"] = date.today().isoformat() if raw_date == "today" else date_m.group(1)
+
+    if args.get("report_type") == "Suspected Adverse Event":
+        ed_m = _EVENT_DESC_RE.search(soft)
+        if ed_m:
+            args["event_description"] = re.sub(r"\s+", " ", ed_m.group(1)).strip(" .,;:-")
+        onset_m = _ONSET_RE.search(soft)
+        if onset_m:
+            args["event_onset_date"] = onset_m.group(1)
+
+    desc_m = _DESC_AFTER_LOT_RE.search(soft)
+    if desc_m:
+        desc = re.sub(r"\s+", " ", desc_m.group(1)).strip(" .,;:-")
+        # Avoid treating reporter/date fragments as description
+        if desc and not re.fullmatch(r"(?:reporter|date|consumer|pharmacist|other).*", desc, re.I):
+            args["description"] = desc
+    if not args.get("description") and args.get("event_description"):
+        args["description"] = args["event_description"]
+
+    return args or None
 
 
 class AgentState(TypedDict, total=False):
@@ -54,6 +261,31 @@ class AgentState(TypedDict, total=False):
 _breaker = CircuitBreaker(limit=2)
 _reports = ReportService()
 _chat = ChatHistoryService()
+
+
+def _hitl_session_thread(state: AgentState) -> tuple[str, str]:
+    """Prefer state channels; fall back to LangGraph configurable thread_id."""
+    session_id = str(state.get("session_id") or "").strip()
+    thread_id = str(state.get("thread_id") or "").strip()
+    if not thread_id:
+        try:
+            cfg = get_config() or {}
+            thread_id = str((cfg.get("configurable") or {}).get("thread_id") or "").strip()
+        except Exception:  # noqa: BLE001
+            thread_id = ""
+    return session_id, thread_id
+
+
+def _thread_has_pending_interrupt(thread_id: str) -> bool:
+    if not (thread_id or "").strip():
+        return False
+    try:
+        tup = get_checkpointer().get_tuple({"configurable": {"thread_id": thread_id}})
+        if not tup:
+            return False
+        return bool(getattr(tup, "interrupts", None) or ())
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _tools() -> dict:
@@ -85,6 +317,13 @@ def _is_status_change_request(soft: str) -> bool:
         "put in review",
         "send to review",
         "move to review",
+        "move to approver",
+        "send to approver",
+        "send for approval",
+        "submit to approver",
+        "hand off to approver",
+        "handoff to approver",
+        "ready for approver",
         "approve close",
         "request close",
         "make request close",
@@ -113,7 +352,23 @@ def _canonical_status(raw: str | None) -> str | None:
     if not raw:
         return None
     s = re.sub(r"\s+", " ", str(raw).strip().lower())
-    if s in {"closed", "close", "closing"}:
+    if s in {
+        "closed",
+        "close",
+        "closing",
+        "review completed",
+        "review complete",
+        "review is completed",
+        "review is complete",
+        "complete review",
+        "complete the review",
+        "finish review",
+        "finish the review",
+        "pending approval",
+        "approver",
+        "awaiting approver",
+    }:
+        # Completing review / sending to approver = request Closed (HITL)
         return "Closed"
     if s in {"new"}:
         return "New"
@@ -121,14 +376,9 @@ def _canonical_status(raw: str | None) -> str | None:
         "in review",
         "review",
         "under review",
-        "review completed",
-        "review complete",
-        "review is completed",
-        "review is complete",
         "start review",
         "start the review",
     }:
-        # Never invent "Review Completed" — only New / In Review / Closed exist
         return "In Review"
     if raw in _ALLOWED_STATUSES:
         return raw
@@ -137,6 +387,7 @@ def _canonical_status(raw: str | None) -> str | None:
 
 def _infer_new_status(soft: str) -> str | None:
     """Map natural-language change phrases to workflow status. Never invent extra statuses."""
+    # Close / send-to-approver first (reviewer finished triage → HITL)
     if any(
         k in soft
         for k in (
@@ -153,6 +404,20 @@ def _infer_new_status(soft: str) -> str | None:
             "mark closed",
             "to closed",
             "close ref-",
+            "move to approver",
+            "send to approver",
+            "send for approval",
+            "submit to approver",
+            "hand off to approver",
+            "handoff to approver",
+            "ready for approver",
+            "complete the review",
+            "complete review",
+            "review is completed",
+            "review completed",
+            "review complete",
+            "finish the review",
+            "finish review",
         )
     ) or bool(re.search(r"\bclose\s+ref-\d{4}-\d{4}\b", soft)):
         return "Closed"
@@ -164,15 +429,8 @@ def _infer_new_status(soft: str) -> str | None:
             "start the review",
             "begin review",
             "begin the review",
-            "complete the review",
-            "complete review",
-            "review is completed",
-            "review completed",
-            "review complete",
             "mark this one review",
             "mark review",
-            "finish the review",
-            "finish review",
             "put in review",
             "send to review",
             "move to review",
@@ -182,6 +440,41 @@ def _infer_new_status(soft: str) -> str | None:
         return "In Review"
     if re.search(r"\bclose\b", soft):
         return "Closed"
+    return None
+
+
+def _normalize_status_soft(message: str) -> str:
+    """Soft-normalize status phrases (common typos + unicode dashes)."""
+    soft = _soft_message(message)
+    return (
+        soft.replace("reviewo", "review")
+        .replace("everthing", "everything")
+        .replace("complet the", "complete the")
+    )
+
+
+def _extract_reviewer_notes(msg: str) -> str | None:
+    """Pull triage notes from explicit notes: clauses or trailing 'with details…' text."""
+    notes_m = re.search(
+        r"(?:reviewer[_\s-]?notes|notes|triage)\s*[:=]\s*(.+)$",
+        msg,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if notes_m:
+        return notes_m.group(1).strip().strip("`\"'")
+
+    detail_m = re.search(
+        r"(?:complete(?:d)?\s+the\s+review\w*|finish(?:ed)?\s+(?:the\s+)?review\w*|"
+        r"move\s+to\s+approver|send\s+to\s+approver|request\s+close|close\s+it|"
+        r"ready\s+for\s+approver)"
+        r"[\s\S]*?(?:with\s+(?:the\s+)?details?\s+(?:of\s+)?|—\s*|–\s*|-\s+)(.+)$",
+        msg,
+        flags=re.IGNORECASE,
+    )
+    if detail_m:
+        note = detail_m.group(1).strip().strip("`\"'")
+        if note and len(note) >= 3:
+            return note
     return None
 
 
@@ -221,10 +514,7 @@ def _is_status_inquiry(soft: str) -> bool:
 
 
 def _rule_route(message: str) -> Intent:
-    text = message.lower().strip()
-    # Normalize punctuation so "hi," / "hello!" still count as social
-    soft = re.sub(r"[^\w\s\-]", " ", text)
-    soft = re.sub(r"\s+", " ", soft).strip()
+    soft = _soft_message(message)
 
     social_exact = {
         "hi",
@@ -257,6 +547,8 @@ def _rule_route(message: str) -> Intent:
     # Read-only status / details questions → lookup (never update_status)
     if _is_status_inquiry(soft):
         return "lookup"
+    if _is_lot_lookup_request(soft):
+        return "lookup"
     if any(
         k in soft
         for k in [
@@ -283,19 +575,7 @@ def _rule_route(message: str) -> Intent:
         k in soft for k in ["approve close", "start review", "move to", "change status"]
     ):
         return "status"
-    if any(
-        k in soft
-        for k in [
-            "create",
-            "submit",
-            "intake",
-            "new report",
-            "file a",
-            "log a",
-            "open a suspected",
-            "open an adverse",
-        ]
-    ):
+    if _is_intake_create_request(soft):
         return "intake"
     # "complaint" alone often means SOP guidance (packaging complaint), not create
     if any(
@@ -372,7 +652,7 @@ def _llm_route(message: str, history: list[dict[str, str]]) -> tuple[Intent | No
 def router_node(state: AgentState) -> AgentState:
     tracer = get_container().tracer
     message = state.get("message", "")
-    soft = re.sub(r"\s+", " ", re.sub(r"[^\w\s\-]", " ", message.lower())).strip()
+    soft = _soft_message(message)
     with tracer.span(
         "agent_router",
         kind="generation",
@@ -387,15 +667,23 @@ def router_node(state: AgentState) -> AgentState:
         },
     ) as span:
         # Deterministic overrides — LLM must not turn status questions into updates
-        # or invent status changes from sticky/ambiguous phrasing.
+        # or invent status changes / mis-route create+complaint to RAG.
         if _is_status_inquiry(soft) and not _is_status_change_request(soft):
             intent = "lookup"
             route_meta = {"router_source": "rules_safe", "intent": intent}
         elif _is_status_change_request(soft):
             intent = "status"
             route_meta = {"router_source": "rules_safe", "intent": intent}
-        elif re.search(r"lot-\d{5}", soft) and any(
-            k in soft for k in ("what should", "packaging", "quarantine", "sop", "how do", "complaint")
+        elif _is_intake_create_request(soft):
+            intent = "intake"
+            route_meta = {"router_source": "rules_safe", "intent": intent}
+        elif _is_lot_lookup_request(soft):
+            intent = "lookup"
+            route_meta = {"router_source": "rules_safe", "intent": intent}
+        elif (
+            re.search(r"lot-\d{5}", soft)
+            and any(k in soft for k in ("what should", "packaging", "quarantine", "sop", "how do", "complaint"))
+            and not _is_intake_create_request(soft)
         ):
             intent = "rag"
             route_meta = {"router_source": "rules_safe", "intent": intent}
@@ -408,6 +696,12 @@ def router_node(state: AgentState) -> AgentState:
                     if intent == "status":
                         intent = "lookup"
                     route_meta = {**route_meta, "router_source": "rules_override_llm_status", "intent": intent}
+                elif llm_intent == "rag" and _is_intake_create_request(soft):
+                    intent = "intake"
+                    route_meta = {**route_meta, "router_source": "rules_override_llm_intake", "intent": intent}
+                elif llm_intent == "rag" and _is_lot_lookup_request(soft):
+                    intent = "lookup"
+                    route_meta = {**route_meta, "router_source": "rules_override_llm_lookup", "intent": intent}
                 else:
                     intent = llm_intent
             else:
@@ -505,6 +799,48 @@ def _extract_json_blob(text: str) -> dict[str, Any] | None:
         return None
 
 
+def _intake_missing_fields(args: dict[str, Any]) -> list[str]:
+    required = [
+        "report_type",
+        "product_name",
+        "batch_lot_number",
+        "date_received",
+        "reporter_type",
+        "description",
+    ]
+    missing = [f for f in required if not str(args.get(f) or "").strip()]
+    if args.get("report_type") == "Suspected Adverse Event":
+        if not str(args.get("event_description") or "").strip():
+            missing.append("event_description")
+        if not str(args.get("event_onset_date") or "").strip():
+            missing.append("event_onset_date")
+    return missing
+
+
+def _format_intake_validation_error(errors: list[Any], args: dict[str, Any]) -> str:
+    lot = str(args.get("batch_lot_number") or "").strip()
+    msgs: list[str] = []
+    for err in errors:
+        if not isinstance(err, dict):
+            msgs.append(str(err))
+            continue
+        loc = ".".join(str(x) for x in (err.get("loc") or ()))
+        msg = str(err.get("msg") or "invalid")
+        if "batch_lot_number" in loc or "LOT-#####" in msg:
+            msgs.append(
+                f"`{lot or 'lot'}` is invalid — batch_lot_number must match "
+                "**LOT-#####** (exactly 5 digits, e.g. LOT-01111)."
+            )
+        else:
+            msgs.append(f"{loc or 'field'}: {msg}")
+    body = "\n".join(f"- {m}" for m in msgs) if msgs else "- Validation failed"
+    return (
+        "### Intake not created\n\n"
+        "No report was saved. Fix the fields below and resubmit:\n\n"
+        f"{body}"
+    )
+
+
 def intake_node(state: AgentState) -> AgentState:
     role = state.get("role") or "operator"
     if not has_permission(role, "intake:create"):
@@ -520,30 +856,50 @@ def intake_node(state: AgentState) -> AgentState:
 
     args = dict(state.get("tool_args") or {})
     if not args:
-        # Try parse JSON from message; else ask for fields
+        # Prefer JSON blob when present; otherwise parse prose fields from the message.
         parsed = _extract_json_blob(state.get("message", ""))
         if parsed:
             args = parsed
         else:
-            fallback = (
-                "To create an intake report, include the fields in your message "
-                "(or paste a JSON object). Needed: report_type, product_name, "
-                "batch_lot_number (LOT-#####), date_received, reporter_type, description "
-                "(+ event fields for AE)."
-            )
-            return {
-                **state,
-                "response": draft_user_response(
-                    kind="intake_needs_args",
-                    user_message=state.get("message", ""),
-                    facts=fallback,
-                    fallback=fallback,
-                    actor=state.get("actor"),
-                    role=state.get("role"),
-                    history=state.get("chat_history"),
-                ),
-                "details": {"route": "intake", "needs_args": True},
-            }
+            args = _parse_intake_from_message(state.get("message", "")) or {}
+
+    missing = _intake_missing_fields(args) if args else [
+        "report_type",
+        "product_name",
+        "batch_lot_number",
+        "date_received",
+        "reporter_type",
+        "description",
+    ]
+    if not args or missing:
+        parsed_bits = {
+            k: v
+            for k, v in args.items()
+            if k not in {"actor", "role"} and str(v or "").strip()
+        }
+        fallback = (
+            "### Intake needs more details\n\n"
+            "No report was created yet. Needed fields: report_type, product_name, "
+            "batch_lot_number (**LOT-#####** with exactly 5 digits), date_received "
+            "(YYYY-MM-DD or today), reporter_type, description "
+            "(+ event_description / event_onset_date for AE).\n\n"
+            f"Missing: {', '.join(missing) if missing else 'all required fields'}\n"
+        )
+        if parsed_bits:
+            fallback += f"\nParsed so far: `{json.dumps(parsed_bits, default=str)}`"
+        return {
+            **state,
+            "response": draft_user_response(
+                kind="intake_needs_args",
+                user_message=state.get("message", ""),
+                facts=fallback,
+                fallback=fallback,
+                actor=state.get("actor"),
+                role=state.get("role"),
+                history=state.get("chat_history"),
+            ),
+            "details": {"route": "intake", "needs_args": True, "parsed": parsed_bits, "missing": missing},
+        }
 
     args["actor"] = state.get("actor", "operator")
     args["role"] = state.get("role", "operator")
@@ -567,13 +923,13 @@ def intake_node(state: AgentState) -> AgentState:
                 "halted": True,
                 "details": {"route": "intake", "errors": exc.errors()},
             }
-        fallback = "Validation failed for submit_intake_report."
+        fallback = _format_intake_validation_error(exc.errors(), args)
         return {
             **state,
             "response": draft_user_response(
                 kind="intake_validation_error",
                 user_message=state.get("message", ""),
-                facts=facts_json({"errors": exc.errors()}),
+                facts=facts_json({"errors": exc.errors(), "parsed": args}),
                 fallback=fallback,
                 actor=state.get("actor"),
                 role=state.get("role"),
@@ -635,12 +991,13 @@ def _ref_from_history(history: list[dict[str, str]] | None) -> str | None:
 
 
 def lookup_node(state: AgentState) -> AgentState:
-    msg = state.get("message", "")
+    msg = _normalize_message(state.get("message", ""))
+    soft = _soft_message(msg)
     ref = None
     m = re.search(r"REF-\d{4}-\d{4}", msg, flags=re.IGNORECASE)
     if m:
         ref = m.group(0).upper()
-    elif _is_status_inquiry(re.sub(r"\s+", " ", re.sub(r"[^\w\s\-]", " ", msg.lower()))):
+    elif _is_status_inquiry(soft) and not _is_lot_lookup_request(soft):
         # "actually it's closed" / "wrong status" → re-fetch last REF from chat
         ref = _ref_from_history(state.get("chat_history"))
     if ref:
@@ -687,42 +1044,100 @@ def lookup_node(state: AgentState) -> AgentState:
             "details": {"route": "lookup", "report": data["report"]},
         }
 
+    lot_m = _LOT_TOKEN_RE.search(msg)
+    lot = lot_m.group(0).upper() if lot_m else None
+    list_args: dict[str, Any] = {}
+    if lot:
+        list_args["batch_lot_number"] = lot
+
     tracer = get_container().tracer
     with tracer.span(
         "agent_tool_list_reports",
         kind="tool",
         actor=state.get("actor"),
         role=state.get("role"),
-        input_preview="list_reports",
-        metadata={"flow": "agent", "step": "tool", "tool": "list_reports"},
+        input_preview=json.dumps(list_args) if list_args else "list_reports",
+        metadata={
+            "flow": "agent",
+            "step": "tool",
+            "tool": "list_reports",
+            "batch_lot_number": lot,
+        },
     ) as span:
-        raw = _tools()["list_reports"].invoke({})
+        raw = _tools()["list_reports"].invoke(list_args)
         data = json.loads(raw)
-        span.set_output({"count": data.get("count", 0)})
+        span.set_output({"count": data.get("count", 0), "batch_lot_number": lot})
         span.update(tool="list_reports", count=data.get("count", 0))
+
+    reports = data.get("reports", [])[:15]
+    if lot and not reports:
+        format_note = ""
+        if not LOT_RE.match(lot):
+            format_note = (
+                f"\n\nNote: `{lot}` does not match **LOT-#####** (exactly 5 digits), "
+                "so it cannot be used for intake create either."
+            )
+        fallback = (
+            f"### {lot} — no reports found\n\n"
+            f"The intake database has no Product Quality Complaint or Adverse Event "
+            f"records for `{lot}`."
+            f"{format_note}"
+        )
+        return {
+            **state,
+            "response": draft_user_response(
+                kind="lookup_not_found",
+                user_message=msg,
+                facts=fallback,
+                fallback=fallback,
+                actor=state.get("actor"),
+                role=state.get("role"),
+                history=state.get("chat_history"),
+            ),
+            "details": {"route": "lookup", "batch_lot_number": lot, "count": 0},
+        }
+
+    if lot and len(reports) == 1:
+        report = reports[0]
+        fallback = f"Report {report.get('reference_id')}: {json.dumps(report, indent=2)}"
+        return {
+            **state,
+            "response": draft_user_response(
+                kind="lookup_one",
+                user_message=msg,
+                facts=facts_json({"report": report}),
+                fallback=fallback,
+                actor=state.get("actor"),
+                role=state.get("role"),
+                history=state.get("chat_history"),
+            ),
+            "details": {"route": "lookup", "report": report, "batch_lot_number": lot},
+        }
+
     summary = [
         f"{r['reference_id']} | {r['status']} | {r['product_name']} | {r['batch_lot_number']}"
-        for r in data.get("reports", [])[:15]
+        for r in reports
     ]
-    fallback = "Recent reports:\n" + ("\n".join(summary) if summary else "No reports yet.")
+    heading = f"Reports for {lot}:" if lot else "Recent reports:"
+    fallback = heading + "\n" + ("\n".join(summary) if summary else "No reports yet.")
     return {
         **state,
         "response": draft_user_response(
             kind="lookup_list",
             user_message=msg,
-            facts=facts_json({"count": data.get("count", 0), "reports": data.get("reports", [])[:15]}),
+            facts=facts_json({"count": data.get("count", 0), "reports": reports, "batch_lot_number": lot}),
             fallback=fallback,
             actor=state.get("actor"),
             role=state.get("role"),
             history=state.get("chat_history"),
         ),
-        "details": {"route": "lookup", "count": data.get("count", 0)},
+        "details": {"route": "lookup", "count": data.get("count", 0), "batch_lot_number": lot},
     }
 
 
 def status_node(state: AgentState) -> AgentState:
     msg = state.get("message", "")
-    soft = re.sub(r"\s+", " ", re.sub(r"[^\w\s\-]", " ", msg.lower())).strip()
+    soft = _normalize_status_soft(msg)
     # Safety: never treat a read-only status question as an update
     if _is_status_inquiry(soft) and not _is_status_change_request(soft):
         return lookup_node(state)
@@ -750,7 +1165,8 @@ def status_node(state: AgentState) -> AgentState:
         if not canon:
             fallback = (
                 "Valid statuses are only **New**, **In Review**, and **Closed**. "
-                "There is no 'Review Completed' status — say *start the review* or *close it*."
+                "There is no separate 'Review Completed' status — say *start the review* "
+                "or *complete the review / move to approver* (requests close for HITL)."
             )
             return {
                 **state,
@@ -767,12 +1183,13 @@ def status_node(state: AgentState) -> AgentState:
         if not ref or not new_status:
             fallback = (
                 "I can change status from your message alone — no tool args needed.\n\n"
-                "Valid workflow: **New → In Review → Closed** (no other statuses).\n"
+                "Valid workflow: **New → In Review → Closed** (closing needs approver HITL).\n"
                 "Examples:\n"
                 "- Start the review of REF-2026-0001\n"
                 "- Move REF-2026-0001 to In Review\n"
-                "- Request close for REF-2026-0003 — notes: packaging intact, lot verified\n"
-                "- Close it (uses the last REF in this chat; include reviewer notes)"
+                "- Complete the review of REF-2026-0003 — notes: packaging intact, lot verified\n"
+                "- Move to approver (uses the last REF in this chat; include reviewer notes)\n"
+                "- Request close for REF-2026-0003 — notes: everything checked"
             )
             return {
                 **state,
@@ -781,15 +1198,11 @@ def status_node(state: AgentState) -> AgentState:
             }
         args = {"reference_id": ref, "new_status": new_status}
 
-    # Reviewer notes for close request (JSON notes / "notes:" clause / free text after dash)
+    # Reviewer notes for close request (JSON notes / notes: / trailing "with details…")
     if not args.get("reviewer_notes"):
-        notes_m = re.search(
-            r"(?:reviewer[_\s-]?notes|notes|triage)\s*[:=]\s*(.+)$",
-            msg,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-        if notes_m:
-            args["reviewer_notes"] = notes_m.group(1).strip().strip("`\"'")
+        extracted = _extract_reviewer_notes(msg)
+        if extracted:
+            args["reviewer_notes"] = extracted
 
     args["actor"] = state.get("actor", "operator")
     args["role"] = state.get("role", "operator")
@@ -874,6 +1287,7 @@ def status_node(state: AgentState) -> AgentState:
             }
 
         tracer = get_container().tracer
+        session_id, thread_id = _hitl_session_thread(state)
         with tracer.span(
             "agent_hitl_close_request",
             kind="tool",
@@ -885,20 +1299,31 @@ def status_node(state: AgentState) -> AgentState:
                 "step": "hitl",
                 "tool": "approve_close",
                 "reference_id": validated.reference_id,
+                "session_id": session_id,
+                "thread_id": thread_id,
             },
         ) as span:
-            hitl = _chat.create_hitl(
-                session_id=state.get("session_id", ""),
-                thread_id=state.get("thread_id", ""),
-                username=state.get("actor", ""),
-                tool_name="approve_close",
-                payload={
-                    "reference_id": validated.reference_id,
-                    "actor": validated.actor,
-                    "role": validated.role,
-                    "report": pending,
-                },
-            )
+            # Interrupt re-runs this node from the top — reuse pending HITL for the REF.
+            hitl = _chat.find_pending_hitl_for_reference(validated.reference_id)
+            if not hitl:
+                hitl = _chat.create_hitl(
+                    session_id=session_id,
+                    thread_id=thread_id,
+                    username=state.get("actor", ""),
+                    tool_name="approve_close",
+                    payload={
+                        "reference_id": validated.reference_id,
+                        "actor": validated.actor,
+                        "role": validated.role,
+                        "report": pending,
+                    },
+                )
+            elif (not hitl.get("session_id") or not hitl.get("thread_id")) and (
+                session_id or thread_id
+            ):
+                hitl = _chat.backfill_hitl_context(
+                    hitl["request_id"], session_id=session_id or None, thread_id=thread_id or None
+                )
             span.set_output(hitl)
             span.update(hitl_request_id=hitl.get("request_id"), pending_close=True)
 
@@ -1164,7 +1589,9 @@ class LangGraphAgentService:
         tool_args: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         session = self.chat_svc.get_session(session_id, username=actor)
-        thread_id = session["thread_id"]
+        thread_id = str(session.get("thread_id") or "").strip()
+        if not thread_id:
+            raise ValueError(f"Chat session {session_id} is missing a LangGraph thread_id")
 
         self.chat_svc.add_message(session_id=session_id, username=actor, role="user", content=message)
         history = self._history_for_prompt(session_id, actor)
@@ -1298,42 +1725,165 @@ class LangGraphAgentService:
                 "request_id": request_id,
             },
         ) as root:
+            # Load first — do NOT mark resolved until the close decision is applied.
+            pending = self.chat_svc.get_hitl(request_id)
+            if pending.get("status") != "pending":
+                raise ValueError(f"HITL request already {pending.get('status')}")
+
+            payload = pending.get("payload") or {}
+            reference_id = str(payload.get("reference_id") or "").strip().upper()
+            if not reference_id:
+                raise ValueError("HITL payload missing reference_id")
+
+            thread_id = str(pending.get("thread_id") or "").strip()
+            session_id = str(pending.get("session_id") or "").strip()
+            resume_payload = {
+                "approved": approved,
+                "resolved_by": resolved_by,
+                "note": note,
+            }
+
+            applied_via = "report_service"
+            result: dict[str, Any] = {}
+            if thread_id and _thread_has_pending_interrupt(thread_id):
+                try:
+                    raw = self.graph.invoke(
+                        Command(resume=resume_payload),
+                        config={"configurable": {"thread_id": thread_id}},
+                    )
+                    result = raw if isinstance(raw, dict) else {"response": str(raw)}
+                    # Verify the report actually moved; otherwise fall back.
+                    report_after = _reports.get(reference_id)
+                    close_applied = (
+                        report_after.get("status") == "Closed"
+                        if approved
+                        else (
+                            report_after.get("status") == "In Review"
+                            and not report_after.get("pending_close")
+                        )
+                    )
+                    if close_applied:
+                        applied_via = "graph"
+                        if isinstance(result, dict):
+                            details = dict(result.get("details") or {})
+                            details["applied_via"] = "graph"
+                            details.setdefault("report", report_after)
+                            result["details"] = details
+                    else:
+                        logger.warning(
+                            "hitl_graph_resume_no_effect",
+                            request_id=request_id,
+                            thread_id=thread_id,
+                            reference_id=reference_id,
+                        )
+                        applied_via = "report_service"
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "hitl_graph_resume_failed",
+                        request_id=request_id,
+                        thread_id=thread_id,
+                        error=str(exc),
+                    )
+                    applied_via = "report_service"
+
+            if applied_via == "report_service":
+                try:
+                    if approved:
+                        report = _reports.approve_close(
+                            reference_id, resolved_by, "approver", comment=note
+                        )
+                        response = f"HITL approved. Closed {reference_id}."
+                    else:
+                        report = _reports.reject_close(
+                            reference_id, resolved_by, "approver", note=note
+                        )
+                        response = f"Close rejected for {reference_id}. Remains In Review."
+                except ValueError as exc:
+                    # Partial graph resume may have already applied the decision.
+                    report = _reports.get(reference_id)
+                    if approved and report.get("status") == "Closed":
+                        response = f"HITL approved. Closed {reference_id}."
+                    elif not approved and report.get("status") == "In Review" and not report.get(
+                        "pending_close"
+                    ):
+                        response = f"Close rejected for {reference_id}. Remains In Review."
+                    else:
+                        raise exc
+                result = {
+                    "response": response,
+                    "details": {
+                        "route": "status",
+                        "approved": approved,
+                        "report": report,
+                        "applied_via": "report_service",
+                    },
+                }
+
             hitl = self.chat_svc.resolve_hitl(
                 request_id, approved=approved, resolved_by=resolved_by, note=note
             )
-            thread_id = hitl["thread_id"]
-            session_id = hitl["session_id"]
-            config = {"configurable": {"thread_id": thread_id}}
-            result = self.graph.invoke(
-                Command(resume={"approved": approved, "resolved_by": resolved_by, "note": note}),
-                config=config,
+            # Clear any duplicate pending rows for the same REF (interrupt re-entry orphans)
+            self.chat_svc.resolve_pending_for_reference(
+                reference_id,
+                approved=approved,
+                resolved_by=resolved_by,
+                note=note or f"Synced with {request_id}",
             )
-            response = result.get("response") if isinstance(result, dict) else str(result)
+
+            response = (
+                result.get("response")
+                if isinstance(result, dict)
+                else str(result)
+            ) or "HITL resolved."
             owner = hitl.get("username") or resolved_by
-            self.chat_svc.add_message(
-                session_id=session_id,
-                username=owner,
-                role="assistant",
-                content=response or "HITL resolved.",
-                intent="status",
-                metadata={"hitl_resolution": hitl, "approved": approved},
+            if session_id:
+                try:
+                    self.chat_svc.add_message(
+                        session_id=session_id,
+                        username=owner,
+                        role="assistant",
+                        content=response,
+                        intent="status",
+                        metadata={
+                            "hitl_resolution": hitl,
+                            "approved": approved,
+                            "applied_via": applied_via,
+                        },
+                    )
+                    self.chat_svc.add_message(
+                        session_id=session_id,
+                        username=owner,
+                        role="system",
+                        content=(
+                            f"HITL {request_id} "
+                            f"{'approved' if approved else 'rejected'} by {resolved_by}"
+                        ),
+                        intent="hitl",
+                        metadata={"request_id": request_id, "approved": approved},
+                    )
+                except KeyError:
+                    logger.warning(
+                        "hitl_chat_append_skipped",
+                        request_id=request_id,
+                        session_id=session_id,
+                    )
+
+            details = result.get("details") if isinstance(result, dict) else {}
+            if isinstance(details, dict):
+                details = {**details, "applied_via": applied_via}
+            root.set_output(
+                {
+                    "approved": approved,
+                    "applied_via": applied_via,
+                    "response_preview": (response or "")[:800],
+                }
             )
-            # Also system note from resolver
-            self.chat_svc.add_message(
-                session_id=session_id,
-                username=owner,
-                role="system",
-                content=f"HITL {request_id} {'approved' if approved else 'rejected'} by {resolved_by}",
-                intent="hitl",
-                metadata={"request_id": request_id, "approved": approved},
-            )
-            root.set_output({"approved": approved, "response_preview": (response or "")[:800]})
-            root.update(session_id=session_id, thread_id=thread_id)
+            root.update(session_id=session_id, thread_id=thread_id, applied_via=applied_via)
             return {
                 "hitl": hitl,
                 "response": response,
                 "session_id": session_id,
                 "thread_id": thread_id,
-                "details": result.get("details") if isinstance(result, dict) else {},
+                "details": details,
                 "trace_id": root.trace_id,
             }

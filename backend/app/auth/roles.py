@@ -16,6 +16,7 @@ ROLE_PERMISSIONS: dict[Role, set[str]] = {
     Role.ADMIN: {
         "intake:create",
         "intake:read",
+        "intake:delete",
         "workflow:update",
         "workflow:approve_close",
         "rag:upload",

@@ -205,9 +205,39 @@ def draft_user_response(
         except Exception:
             return base
 
-    # Never let the response LLM invent a successful status change
-    if kind in {"status_needs_args", "status_close_error", "status_validation_error"}:
+    # Never let the response LLM invent a successful status change or fake intake REF
+    if kind in {
+        "status_needs_args",
+        "status_close_error",
+        "status_validation_error",
+        "intake_needs_args",
+        "intake_validation_error",
+        "intake_circuit_breaker",
+        "lookup_not_found",
+    }:
         return fallback
+
+    if kind == "intake_created":
+        pretty = _pretty_lookup_fallback(facts) if facts.strip().startswith("{") else fallback
+        try:
+            report = json.loads(facts).get("report") or {}
+            ref = str(report.get("reference_id") or "")
+            st = str(report.get("status") or "")
+            llm = get_container().llm_for("response")
+            prompt = (
+                f"User asked: {user_message}\n\n"
+                f"Exact created report facts (DO NOT invent IDs):\n{facts}\n\n"
+                "Confirm the intake was created in short markdown. "
+                "Keep the exact reference_id and status.\n"
+            )
+            polished = _clean_llm_text(llm.generate(prompt, system=_SAFETY).content, pretty)
+            if ref and ref not in polished:
+                return pretty
+            if st and st not in polished:
+                return pretty
+            return polished
+        except Exception:
+            return pretty or fallback
 
     if kind == "status_updated":
         pretty = _pretty_lookup_fallback(facts) if facts.strip().startswith("{") else fallback

@@ -84,13 +84,20 @@ class ReportService:
         _audit(actor, role, "created", ref, "Intake report created")
         return self.get(ref)
 
-    def list(self, status: str | None = None, report_type: str | None = None) -> list[dict[str, Any]]:
+    def list(
+        self,
+        status: str | None = None,
+        report_type: str | None = None,
+        batch_lot_number: str | None = None,
+    ) -> list[dict[str, Any]]:
         with db_manager.session(DatabaseKind.CORE) as session:
             q = session.query(Report)
             if status:
                 q = q.filter(Report.status == status)
             if report_type:
                 q = q.filter(Report.report_type == report_type)
+            if batch_lot_number:
+                q = q.filter(Report.batch_lot_number == batch_lot_number.strip().upper())
             rows = q.order_by(Report.created_at.desc()).all()
             return [self._to_dict(r) for r in rows]
 
@@ -100,6 +107,28 @@ class ReportService:
             if not r:
                 raise KeyError(reference_id)
             return self._to_dict(r)
+
+    def delete(self, reference_id: str, actor: str, role: str) -> dict[str, Any]:
+        """Hard-delete a report from core DB (admin only). Audit row retained."""
+        with db_manager.session(DatabaseKind.CORE) as session:
+            r = session.query(Report).filter(Report.reference_id == reference_id).first()
+            if not r:
+                raise KeyError(reference_id)
+            snapshot = self._to_dict(r)
+            session.delete(r)
+        _audit(
+            actor,
+            role,
+            "deleted",
+            reference_id,
+            (
+                f"Deleted {snapshot.get('report_type')} "
+                f"product={snapshot.get('product_name')} "
+                f"lot={snapshot.get('batch_lot_number')} "
+                f"status={snapshot.get('status')}"
+            ),
+        )
+        return {"ok": True, "reference_id": reference_id, "deleted": snapshot}
 
     def request_status(
         self,

@@ -182,7 +182,7 @@ export function Table({
   rows,
   maxHeight,
 }: {
-  headers: string[];
+  headers: ReactNode[];
   rows: ReactNode[][];
   maxHeight?: number | string;
 }) {
@@ -194,8 +194,8 @@ export function Table({
       <table>
         <thead>
           <tr>
-            {headers.map((h) => (
-              <th key={h}>{h}</th>
+            {headers.map((h, i) => (
+              <th key={typeof h === 'string' || typeof h === 'number' ? String(h) : i}>{h}</th>
             ))}
           </tr>
         </thead>

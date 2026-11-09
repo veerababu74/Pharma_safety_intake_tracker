@@ -8,10 +8,12 @@ from app.schemas.reports import (
     ReportCreate,
     StatusUpdateRequest,
 )
+from app.services.chat_service import ChatHistoryService
 from app.services.report_service import ReportService
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 service = ReportService()
+chat_svc = ChatHistoryService()
 
 
 @router.post("")
@@ -38,6 +40,18 @@ def list_reports(
 def get_report(reference_id: str, user: User = Depends(require_permission("intake:read"))):
     try:
         return service.get(reference_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Report not found") from exc
+
+
+@router.delete("/{reference_id}")
+def delete_report(
+    reference_id: str,
+    user: User = Depends(require_permission("intake:delete")),
+):
+    """Admin-only hard delete of a fictional intake report."""
+    try:
+        return service.delete(reference_id, actor=user.username, role=user.role)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Report not found") from exc
 
@@ -71,13 +85,20 @@ def approve_close(
     if not payload.confirm:
         raise HTTPException(status_code=400, detail="confirm must be true")
     try:
-        return service.approve_close(
+        report = service.approve_close(
             reference_id, user.username, user.role, comment=payload.comment
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Report not found") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    chat_svc.resolve_pending_for_reference(
+        reference_id,
+        approved=True,
+        resolved_by=user.username,
+        note=payload.comment or "Approved via reports API",
+    )
+    return report
 
 
 @router.post("/{reference_id}/reject-close")
@@ -89,10 +110,17 @@ def reject_close(
     if not payload.confirm:
         raise HTTPException(status_code=400, detail="confirm must be true")
     try:
-        return service.reject_close(
+        report = service.reject_close(
             reference_id, user.username, user.role, note=payload.note
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Report not found") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    chat_svc.resolve_pending_for_reference(
+        reference_id,
+        approved=False,
+        resolved_by=user.username,
+        note=payload.note or "Rejected via reports API",
+    )
+    return report

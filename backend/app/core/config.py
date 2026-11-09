@@ -60,6 +60,9 @@ class Settings(BaseSettings):
         "sentence_transformers", "huggingface", "openai", "google"
     ] = "sentence_transformers"
     embedding_model_name: str = "all-MiniLM-L6-v2"
+    # Local on-disk Hub cache for sentence-transformers / cross-encoder weights.
+    # Prefer project data/ over OS temp so models survive reboot and reload cleanly.
+    embedding_cache_dir: str = str(BACKEND_ROOT / "data" / "embedding_models")
 
     vector_store_provider: Literal["faiss", "chromadb"] = "faiss"
 

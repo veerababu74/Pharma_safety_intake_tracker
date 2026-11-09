@@ -50,21 +50,88 @@ def test_rule_route_production_phrases(message: str, intent: str):
     "message,expected",
     [
         ("start the review of REF-2026-0006", "In Review"),
-        ("mark this one review is completed", "In Review"),
-        ("move to review completed", "In Review"),
+        ("mark this one review is completed", "Closed"),
+        ("move to review completed", "Closed"),
+        ("complete the reviewo with the details of everthing is checked", "Closed"),
+        ("move to approver", "Closed"),
+        ("send to approver", "Closed"),
         ("request close for REF-2026-0005", "Closed"),
         ("close it", "Closed"),
     ],
 )
 def test_infer_new_status_phrases(message: str, expected: str):
-    assert _infer_new_status(_soft(message)) == expected
+    from app.modules.agents.graph import _normalize_status_soft
+
+    assert _infer_new_status(_normalize_status_soft(message)) == expected
 
 
 def test_canonical_status_rejects_invented_labels():
-    assert _canonical_status("Review Completed") == "In Review"
+    assert _canonical_status("Review Completed") == "Closed"
     assert _canonical_status("Closed") == "Closed"
     assert _canonical_status("In Review") == "In Review"
     assert _canonical_status("Pending QA Magic") is None
+
+
+def test_extract_notes_and_move_to_approver_requests_close():
+    from app.modules.agents.graph import _extract_reviewer_notes, _infer_new_status, _normalize_status_soft
+
+    notes = _extract_reviewer_notes(
+        "REF-2026-0063 complete the review with the details of everything is checked"
+    )
+    assert notes
+    assert "everything is checked" in notes.lower()
+    assert _infer_new_status(_normalize_status_soft("move to approver")) == "Closed"
+    assert (
+        _infer_new_status(
+            _normalize_status_soft(
+                "REF-2026-0063 complete the reviewo with the details of everthing is checked"
+            )
+        )
+        == "Closed"
+    )
+
+    svc = ReportService()
+    created = svc.create(
+        {
+            "report_type": "Product Quality Complaint",
+            "product_name": "AllergyClear 5mg",
+            "batch_lot_number": "LOT-00011",
+            "date_received": "2026-11-09",
+            "reporter_type": "Consumer",
+            "description": "Loose desiccant",
+        },
+        actor="reviewer",
+        role="reviewer",
+    )
+    ref = created["reference_id"]
+    svc.request_status(ref, "In Review", "reviewer", "reviewer")
+
+    out = status_node(
+        {
+            "message": "move to approver",
+            "actor": "reviewer",
+            "role": "reviewer",
+            "tool_args": {},
+            "chat_history": [
+                {"role": "user", "content": f"{ref} details"},
+                {"role": "assistant", "content": f"Report {ref} status In Review"},
+            ],
+        }
+    )
+    # Without notes, agent should ask for reviewer notes (not pretend success)
+    assert out.get("details", {}).get("needs_reviewer_notes") is True
+
+    # With notes, close is requested (pending_close). HITL interrupt needs a graph
+    # context, so assert via the service row rather than the interrupt path.
+    pending = svc.request_status(
+        ref,
+        "Closed",
+        "reviewer",
+        "reviewer",
+        reviewer_notes="everything is checked",
+    )
+    assert pending.get("pending_close") is True
+    assert pending.get("status") == "In Review"
 
 
 def test_update_status_input_rejects_invented_status():

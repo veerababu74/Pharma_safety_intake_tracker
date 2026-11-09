@@ -111,10 +111,11 @@ class CrossEncoderReranker(Reranker):
     name = "cross_encoder"
 
     def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2") -> None:
-        from sentence_transformers import CrossEncoder
+        from app.modules.embeddings.model_cache import get_cross_encoder
 
         self.model_name = model_name
-        self.model = CrossEncoder(model_name)
+        # Same on-disk Hub cache + process singleton as embedding models.
+        self.model = get_cross_encoder(model_name)
 
     def rerank(
         self,

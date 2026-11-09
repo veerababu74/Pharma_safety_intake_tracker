@@ -116,9 +116,14 @@ def get_report(reference_id: str) -> str:
 def list_reports(
     status: Optional[str] = None,
     report_type: Optional[str] = None,
+    batch_lot_number: Optional[str] = None,
 ) -> str:
-    """List/filter fictional intake reports by status and/or report type."""
-    return agent_tools._list_reports(status=status, report_type=report_type)
+    """List/filter fictional intake reports by status, type, and/or lot."""
+    return agent_tools._list_reports(
+        status=status,
+        report_type=report_type,
+        batch_lot_number=batch_lot_number,
+    )
 
 
 @mcp.tool

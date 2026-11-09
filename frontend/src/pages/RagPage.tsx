@@ -126,6 +126,12 @@ export function RagPage() {
   async function ask(text: string) {
     const q = text.trim();
     if (!q || busy) return;
+    const optimisticId = -Date.now();
+    setQuestion('');
+    setMessages((prev) => [
+      ...prev,
+      { id: optimisticId, role: 'user', content: q },
+    ]);
     setBusy(true);
     try {
       let active = sessionId;
@@ -143,9 +149,10 @@ export function RagPage() {
       );
       setResult(data);
       setShowDetails(false);
-      setQuestion('');
       await refreshSessions(active);
     } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      setQuestion(q);
       toast.error('Query failed', err instanceof Error ? err.message : 'Please try again');
     } finally {
       setBusy(false);
@@ -181,14 +188,13 @@ export function RagPage() {
       />
 
       <div className={`chat-workspace ${sessionsOpen ? 'sessions-open' : 'sessions-closed'}`}>
-        {sessionsOpen ? (
-          <button
-            type="button"
-            className="chat-sessions-backdrop"
-            aria-label="Close sessions"
-            onClick={() => setSessionsOpen(false)}
-          />
-        ) : null}
+        <button
+          type="button"
+          className="chat-sessions-backdrop"
+          aria-label="Close sessions"
+          tabIndex={sessionsOpen ? 0 : -1}
+          onClick={() => setSessionsOpen(false)}
+        />
 
         <aside className="chat-sessions" aria-hidden={!sessionsOpen}>
           <div className="chat-sessions-head">
@@ -282,7 +288,9 @@ export function RagPage() {
                 <div key={m.id} className={`chat-bubble chat-${m.role}`}>
                   <div className="chat-meta">
                     <span>{m.role === 'user' ? 'You' : m.role === 'assistant' ? 'Assistant' : m.role}</span>
-                    {m.intent ? <span className="chat-pill">{m.intent}</span> : null}
+                    {m.role === 'assistant' && m.intent ? (
+                      <span className="chat-pill">{m.intent}</span>
+                    ) : null}
                   </div>
                   <ChatMarkdown text={m.content} />
                 </div>

@@ -167,3 +167,33 @@ def test_reject_without_pending_fails():
     created = svc.create(_base_payload(), actor="reviewer", role="reviewer")
     with pytest.raises(ValueError, match="No pending close"):
         svc.reject_close(created["reference_id"], "approver", "approver")
+
+
+def test_admin_delete_removes_report_and_audits():
+    from app.auth.roles import has_permission
+
+    assert has_permission("admin", "intake:delete")
+    assert not has_permission("reviewer", "intake:delete")
+    assert not has_permission("operator", "intake:delete")
+    assert not has_permission("approver", "intake:delete")
+
+    svc = ReportService()
+    created = svc.create(_base_payload(), actor="admin", role="admin")
+    ref = created["reference_id"]
+    result = svc.delete(ref, actor="admin", role="admin")
+    assert result["ok"] is True
+    assert result["reference_id"] == ref
+
+    with pytest.raises(KeyError):
+        svc.get(ref)
+
+    with db_manager.session(DatabaseKind.AUDIT) as session:
+        row = (
+            session.query(AuditLog)
+            .filter(AuditLog.resource_id == ref, AuditLog.action == "deleted")
+            .order_by(AuditLog.id.desc())
+            .first()
+        )
+        assert row is not None
+        assert row.actor == "admin"
+        assert "NeuroCalm" in (row.details or "")

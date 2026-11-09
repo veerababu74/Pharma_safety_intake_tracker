@@ -20,4 +20,6 @@ def get_checkpointer() -> SqliteSaver:
     path = BACKEND_ROOT / "data" / "langgraph_checkpoints.sqlite"
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(path), check_same_thread=False)
-    return SqliteSaver(conn)
+    saver = SqliteSaver(conn)
+    saver.setup()
+    return saver

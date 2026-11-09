@@ -44,6 +44,15 @@ Thumbs.db
 **/.DS_Store
 
 # NOTE: backend/data (SQLite DBs, uploads, chroma, faiss) IS tracked for the training demo
+# Exception: local Hub weights for sentence-transformers / cross-encoder — never push
+backend/data/embedding_models/
+**/embedding_models/
+
+# SQLite WAL sidecars (runtime only)
+*.sqlite-shm
+*.sqlite-wal
+**/*-shm
+**/*-wal
 
 # Local-only architecture / scenario / walkthrough docs — never push
 never_push_to_git/

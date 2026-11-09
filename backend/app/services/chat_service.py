@@ -165,6 +165,24 @@ class ChatHistoryService:
                 raise KeyError(request_id)
             return self._hitl_dict(row)
 
+    def backfill_hitl_context(
+        self,
+        request_id: str,
+        *,
+        session_id: str | None = None,
+        thread_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Fill blank session/thread on a pending HITL when chat context becomes known."""
+        with db_manager.session(DatabaseKind.CORE) as session:
+            row = session.query(AgentHitlRequest).filter(AgentHitlRequest.request_id == request_id).first()
+            if not row:
+                raise KeyError(request_id)
+            if session_id and not (row.session_id or "").strip():
+                row.session_id = session_id
+            if thread_id and not (row.thread_id or "").strip():
+                row.thread_id = thread_id
+        return self.get_hitl(request_id)
+
     def list_pending_hitl(self, username: str | None = None) -> list[dict[str, Any]]:
         with db_manager.session(DatabaseKind.CORE) as session:
             q = session.query(AgentHitlRequest).filter(AgentHitlRequest.status == "pending")
@@ -172,6 +190,60 @@ class ChatHistoryService:
                 q = q.filter(AgentHitlRequest.username == username)
             rows = q.order_by(AgentHitlRequest.created_at.desc()).all()
             return [self._hitl_dict(r) for r in rows]
+
+    def find_pending_hitl_for_reference(
+        self,
+        reference_id: str,
+        *,
+        tool_name: str = "approve_close",
+    ) -> dict[str, Any] | None:
+        """Reuse an open LangGraph HITL row for the same REF (interrupt re-entry safe)."""
+        ref = (reference_id or "").strip().upper()
+        if not ref:
+            return None
+        with db_manager.session(DatabaseKind.CORE) as session:
+            rows = (
+                session.query(AgentHitlRequest)
+                .filter(
+                    AgentHitlRequest.status == "pending",
+                    AgentHitlRequest.tool_name == tool_name,
+                )
+                .order_by(AgentHitlRequest.created_at.desc())
+                .all()
+            )
+            for row in rows:
+                try:
+                    payload = json.loads(row.payload_json or "{}")
+                except Exception:  # noqa: BLE001
+                    continue
+                if str(payload.get("reference_id") or "").strip().upper() == ref:
+                    return self._hitl_dict(row)
+        return None
+
+    def resolve_pending_for_reference(
+        self,
+        reference_id: str,
+        *,
+        approved: bool,
+        resolved_by: str,
+        note: str | None = None,
+        tool_name: str = "approve_close",
+    ) -> list[dict[str, Any]]:
+        """Mark matching pending agent HITL rows resolved (e.g. after REST approve/reject)."""
+        resolved: list[dict[str, Any]] = []
+        while True:
+            pending = self.find_pending_hitl_for_reference(reference_id, tool_name=tool_name)
+            if not pending:
+                break
+            resolved.append(
+                self.resolve_hitl(
+                    pending["request_id"],
+                    approved=approved,
+                    resolved_by=resolved_by,
+                    note=note,
+                )
+            )
+        return resolved
 
     def resolve_hitl(
         self,

@@ -41,9 +41,10 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
     name = "sentence_transformers"
 
     def __init__(self, model_name: str) -> None:
-        from sentence_transformers import SentenceTransformer
+        from app.modules.embeddings.model_cache import get_sentence_transformer
 
-        self._model = SentenceTransformer(model_name)
+        # Shared in-process handle; Hub weights live under embedding_cache_dir.
+        self._model = get_sentence_transformer(model_name)
         self._dim = int(self._model.get_sentence_embedding_dimension())
 
     @property

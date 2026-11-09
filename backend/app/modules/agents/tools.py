@@ -62,6 +62,10 @@ class GetReportInput(BaseModel):
 class ListReportsInput(BaseModel):
     status: Optional[str] = None
     report_type: Optional[str] = None
+    batch_lot_number: Optional[str] = Field(
+        default=None,
+        description="Optional exact lot filter, e.g. LOT-88392",
+    )
 
 
 class RagQueryInput(BaseModel):
@@ -103,8 +107,12 @@ def _get_report(reference_id: str) -> str:
         return json.dumps({"ok": False, "error": "Report not found"})
 
 
-def _list_reports(status: str | None = None, report_type: str | None = None) -> str:
-    rows = _reports.list(status=status, report_type=report_type)
+def _list_reports(
+    status: str | None = None,
+    report_type: str | None = None,
+    batch_lot_number: str | None = None,
+) -> str:
+    rows = _reports.list(status=status, report_type=report_type, batch_lot_number=batch_lot_number)
     return json.dumps({"ok": True, "count": len(rows), "reports": rows[:50]})
 
 
@@ -144,7 +152,7 @@ def build_agent_tools() -> list[StructuredTool]:
         ),
         StructuredTool.from_function(
             name="list_reports",
-            description="List/filter fictional intake reports by status and type.",
+            description="List/filter fictional intake reports by status, type, and/or lot.",
             func=_list_reports,
             args_schema=ListReportsInput,
         ),
