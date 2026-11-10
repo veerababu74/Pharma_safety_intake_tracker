@@ -1,4 +1,8 @@
-from pydantic import BaseModel, Field, field_validator
+import re
+
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+LOT_RE = re.compile(r"^LOT-\d{5}$")
 
 
 class ReportCreate(BaseModel):
@@ -18,6 +22,23 @@ class ReportCreate(BaseModel):
         if v not in allowed:
             raise ValueError(f"report_type must be one of {sorted(allowed)}")
         return v
+
+    @field_validator("batch_lot_number")
+    @classmethod
+    def validate_lot(cls, v: str) -> str:
+        lot = (v or "").strip().upper()
+        if not LOT_RE.match(lot):
+            raise ValueError("batch_lot_number must match LOT-##### (exactly 5 digits)")
+        return lot
+
+    @model_validator(mode="after")
+    def validate_ae_fields(self) -> "ReportCreate":
+        if self.report_type == "Suspected Adverse Event":
+            if not (self.event_description or "").strip():
+                raise ValueError("event_description is required for Suspected Adverse Event")
+            if not (self.event_onset_date or "").strip():
+                raise ValueError("event_onset_date is required for Suspected Adverse Event")
+        return self
 
 
 class StatusUpdateRequest(BaseModel):

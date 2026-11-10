@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     # When APP_ENV=production, demo users are skipped unless this is true
     seed_demo_users: bool = False
+    # Training convenience: same user may request and approve close.
+    # Set false in production for segregation of duties (requester ≠ approver).
+    allow_self_approve: bool = True
     max_upload_bytes: int = 15 * 1024 * 1024
 
     core_db_url: str = Field(default=f"sqlite:///{BACKEND_ROOT / 'data' / 'core.db'}")

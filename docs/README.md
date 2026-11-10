@@ -6,6 +6,7 @@ Living docs for the **Pharma Safety Intake & Triage Tracker** training prototype
 |---|---|---|
 | [Business Problem & Solution](./BUSINESS_PROBLEM_AND_SOLUTION.md) | Ready | Why this exists, who hurts, how we solve it |
 | [Manager Demo Walkthrough](./MANAGER_DEMO_WALKTHROUGH.md) | Ready | One final live demo script for your manager |
+| [New User Role Test Tasks](./NEW_USER_ROLE_TEST_TASKS.md) | Ready | Operator / reviewer / approver / admin feature test checklist (5+ tasks each) |
 | [Canva Presentation Guide](./CANVA_PRESENTATION_GUIDE.md) | Ready | Slide-by-slide Canva deck script (problem → tech → screenshots) |
 | [Backend docs](./backend/README.md) | Ready | Architecture, auth, RAG, agent, tracing, E2E |
 | [Frontend docs](./frontend/README.md) | Ready | UI architecture, pages/roles, workflow, RAG/Agent, monitoring, E2E |

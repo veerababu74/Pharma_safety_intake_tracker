@@ -46,13 +46,13 @@ def test_invoke_approve_close_local_path(monkeypatch):
     tb.set_runtime_tool_backend("local")
     calls: list[tuple] = []
 
-    def _fake(ref: str, actor: str, role: str) -> str:
-        calls.append((ref, actor, role))
+    def _fake(ref: str, actor: str, role: str, comment: str | None = None) -> str:
+        calls.append((ref, actor, role, comment))
         return '{"ok": true, "report": {"reference_id": "%s", "status": "Closed"}}' % ref
 
     monkeypatch.setattr(tb, "approve_close_tool", _fake)
-    out = tb.invoke_approve_close("REF-2026-9999", "admin", "admin")
-    assert calls == [("REF-2026-9999", "admin", "admin")]
+    out = tb.invoke_approve_close("REF-2026-9999", "admin", "admin", comment="ok")
+    assert calls == [("REF-2026-9999", "admin", "admin", "ok")]
     assert "Closed" in out
 
 

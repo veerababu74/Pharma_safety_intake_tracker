@@ -143,8 +143,24 @@ def approve_close(
     role: str = "approver",
     comment: Optional[str] = None,
 ) -> str:
-    """Approve a pending HITL close (optional comment)."""
-    return agent_tools.approve_close_tool(reference_id, actor, role, comment=comment)
+    """Approve a pending HITL close (optional comment).
+
+    Local demo only: caller-supplied actor/role are accepted for in-process training.
+    Do not expose HTTP MCP beyond 127.0.0.1 without auth.
+    """
+    from app.auth.roles import has_permission
+
+    safe_role = (role or "approver").strip().lower()
+    if not has_permission(safe_role, "workflow:approve_close"):
+        return json.dumps(
+            {
+                "ok": False,
+                "error": "role lacks workflow:approve_close (use approver or admin)",
+            }
+        )
+    return agent_tools.approve_close_tool(
+        reference_id, actor or "mcp_approver", safe_role, comment=comment
+    )
 
 
 @mcp.tool
@@ -192,11 +208,18 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.http:
+        host = (args.host or "127.0.0.1").strip()
+        if host not in {"127.0.0.1", "localhost", "::1"} and os.getenv(
+            "ALLOW_MCP_REMOTE", ""
+        ).strip().lower() not in {"1", "true", "yes"}:
+            raise SystemExit(
+                f"Refusing MCP HTTP bind to {host!r}. Use 127.0.0.1 or set ALLOW_MCP_REMOTE=true."
+            )
         # Prefer streamable HTTP when supported by the installed FastMCP version.
         try:
-            mcp.run(transport="http", host=args.host, port=args.port)
+            mcp.run(transport="http", host=host, port=args.port)
         except TypeError:
-            mcp.run(transport="sse", host=args.host, port=args.port)
+            mcp.run(transport="sse", host=host, port=args.port)
     else:
         mcp.run()
 

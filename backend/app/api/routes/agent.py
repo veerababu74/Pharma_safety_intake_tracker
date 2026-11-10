@@ -53,9 +53,9 @@ def get_agent_config(user: User = Depends(require_permission("agent:chat"))):
 @router.put("/config")
 def put_agent_config(
     payload: AgentToolBackendRequest,
-    user: User = Depends(require_permission("agent:chat")),
+    user: User = Depends(require_permission("agent:configure")),
 ):
-    """Runtime override for which tool layer the LangGraph agent uses."""
+    """Runtime override for which tool layer the LangGraph agent uses (admin only)."""
     try:
         set_runtime_tool_backend(payload.tool_backend)
     except ValueError as exc:

@@ -13,6 +13,7 @@ from langgraph.types import Command, interrupt
 from pydantic import ValidationError
 
 from app.auth.roles import has_permission
+from app.core.config import get_settings
 from app.core.container import get_container
 from app.core.logging import get_logger
 from app.modules.agents.checkpointer import get_checkpointer
@@ -1131,7 +1132,12 @@ def lookup_node(state: AgentState) -> AgentState:
             role=state.get("role"),
             history=state.get("chat_history"),
         ),
-        "details": {"route": "lookup", "count": data.get("count", 0), "batch_lot_number": lot},
+        "details": {
+            "route": "lookup",
+            "count": data.get("count", 0),
+            "batch_lot_number": lot,
+            "reports": reports,
+        },
     }
 
 
@@ -1327,8 +1333,13 @@ def status_node(state: AgentState) -> AgentState:
             span.set_output(hitl)
             span.update(hitl_request_id=hitl.get("request_id"), pending_close=True)
 
-        # Admin / approver may complete close immediately (they hold workflow:approve_close).
-        if pending.get("pending_close") and has_permission(validated.role, "workflow:approve_close"):
+        # Admin / approver may complete close immediately when self-approve is allowed.
+        can_auto_approve = (
+            pending.get("pending_close")
+            and has_permission(validated.role, "workflow:approve_close")
+            and get_settings().allow_self_approve
+        )
+        if can_auto_approve:
             closed = json.loads(
                 invoke_approve_close(validated.reference_id, validated.actor, validated.role)
             )

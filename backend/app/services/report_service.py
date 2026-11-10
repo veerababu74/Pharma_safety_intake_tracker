@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 from typing import Any
 
+from app.core.config import get_settings
 from app.db.models.audit import AuditLog
 from app.db.models.core import Report
 from app.db.session import DatabaseKind, db_manager
@@ -121,12 +122,7 @@ class ReportService:
             role,
             "deleted",
             reference_id,
-            (
-                f"Deleted {snapshot.get('report_type')} "
-                f"product={snapshot.get('product_name')} "
-                f"lot={snapshot.get('batch_lot_number')} "
-                f"status={snapshot.get('status')}"
-            ),
+            f"Deleted report status={snapshot.get('status')}",
         )
         return {"ok": True, "reference_id": reference_id, "deleted": snapshot}
 
@@ -177,7 +173,7 @@ class ReportService:
                     role,
                     "close_requested",
                     reference_id,
-                    f"Pending HITL approval; reviewer_notes={(r.reviewer_notes or '')[:240]}",
+                    "Pending HITL approval",
                 )
                 return self._to_dict(r)
 
@@ -207,11 +203,21 @@ class ReportService:
                     "Cannot approve: reviewer notes are missing. "
                     "Ask a reviewer to add triage details and re-request close."
                 )
+            requester = (r.updated_by or "").strip().lower()
+            if (
+                not get_settings().allow_self_approve
+                and requester
+                and requester == (actor or "").strip().lower()
+            ):
+                raise ValueError(
+                    "Segregation of duties: the user who requested close cannot also approve it. "
+                    "Have a different approver/admin complete HITL, or set ALLOW_SELF_APPROVE=true for training."
+                )
             r.status = "Closed"
             r.pending_close = False
             r.approver_comment = note or None
             r.updated_by = actor
-        detail = f"Close approved{(': ' + note) if note else ''}"
+        detail = "Close approved" + (" (with comment)" if note else "")
         _audit(actor, role, "hitl_approved", reference_id, detail)
         _audit(actor, role, "status_changed", reference_id, "In Review → Closed")
         return self.get(reference_id)

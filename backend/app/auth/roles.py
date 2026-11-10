@@ -24,6 +24,7 @@ ROLE_PERMISSIONS: dict[Role, set[str]] = {
         "rag:view",
         "rag:query",
         "agent:chat",
+        "agent:configure",
         "obs:view",
         "audit:view",
         "users:manage",

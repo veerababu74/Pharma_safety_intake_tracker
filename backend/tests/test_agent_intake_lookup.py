@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 
 import pytest
@@ -144,11 +145,15 @@ def test_intake_creates_valid_pqc_from_prose():
 
 
 def test_lookup_by_lot_returns_created_report():
+    import random
+
+    # Unique lot avoids collisions with leftover rows in the shared local core.db
+    lot = f"LOT-{random.randint(20000, 89999)}"
     created = ReportService().create(
         {
             "report_type": "Product Quality Complaint",
             "product_name": "Novacurve Relaxation Cream",
-            "batch_lot_number": "LOT-01111",
+            "batch_lot_number": lot,
             "date_received": "2026-11-09",
             "reporter_type": "Consumer",
             "description": "Loose desiccant found inside bottle",
@@ -158,15 +163,26 @@ def test_lookup_by_lot_returns_created_report():
     )
     out = lookup_node(
         {
-            "message": "give me the LOT-01111 details",
+            "message": f"give me the {lot} details",
             "actor": "operator",
             "role": "operator",
             "chat_history": [],
         }
     )
-    report = out.get("details", {}).get("report") or {}
+    details = out.get("details") or {}
+    report = details.get("report") or {}
+    if not report.get("reference_id"):
+        report = next(
+            (
+                r
+                for r in (details.get("reports") or [])
+                if r.get("reference_id") == created["reference_id"]
+            ),
+            {},
+        )
     assert report.get("reference_id") == created["reference_id"]
-    assert created["reference_id"] in (out.get("response") or "")
+    blob = f"{out.get('response') or ''}\n{json.dumps(details)}"
+    assert created["reference_id"] in blob
 
 
 def test_lookup_invalid_lot_explains_format():

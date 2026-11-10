@@ -196,4 +196,33 @@ def test_admin_delete_removes_report_and_audits():
         )
         assert row is not None
         assert row.actor == "admin"
-        assert "NeuroCalm" in (row.details or "")
+        assert "Deleted report" in (row.details or "")
+
+
+def test_self_approve_blocked_when_disabled(monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("ALLOW_SELF_APPROVE", "false")
+    get_settings.cache_clear()
+    assert get_settings().allow_self_approve is False
+
+    svc = ReportService()
+    created = svc.create(_base_payload(batch_lot_number="LOT-77001"), actor="reviewer", role="reviewer")
+    ref = created["reference_id"]
+    svc.request_status(ref, "In Review", "reviewer", "reviewer")
+    svc.request_status(
+        ref,
+        "Closed",
+        "reviewer",
+        "reviewer",
+        reviewer_notes="Self-approve SoD check",
+    )
+    with pytest.raises(ValueError, match="Segregation of duties"):
+        svc.approve_close(ref, "reviewer", "admin")
+
+    closed = svc.approve_close(ref, "approver", "approver", comment="Different user")
+    assert closed["status"] == "Closed"
+
+    get_settings.cache_clear()
+    monkeypatch.delenv("ALLOW_SELF_APPROVE", raising=False)
+    get_settings.cache_clear()
