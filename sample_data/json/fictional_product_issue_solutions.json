@@ -1,0 +1,171 @@
+{
+  "dataset_name": "NovaCure fictional product issue solutions",
+  "classification": "Synthetic / Training Only",
+  "disclaimer": "Does not provide medical treatment, causality, or regulatory decisions. Fictional data only.",
+  "version": "1.0",
+  "last_updated": "2026-11-02",
+  "solutions": [
+    {
+      "solution_id": "SOL-001",
+      "product_name": "NeuroCalm 50mg",
+      "batch_lot_number": "LOT-88392",
+      "issue": {
+        "category": "Packaging Integrity",
+        "keyword": "broken seal",
+        "summary": "Bottle seal broken or cap-ring dented on arrival",
+        "example_user_phrases": [
+          "seal was broken",
+          "cap ring dented",
+          "packaging integrity complaint for LOT-88392"
+        ]
+      },
+      "recommended_intake_action": [
+        "Save Product Quality Complaint with REF-YYYY-XXXX",
+        "Quarantine lot within 4 business hours",
+        "Notify qc-desk@novacure.example",
+        "Do not give medical advice in notes"
+      ],
+      "related_documents": [
+        "SOP-LOT-QUARANTINE-001",
+        "QUICKREF-PACKAGING-COMPLAINTS-006",
+        "PAST-REPORT-DIGEST-LOT-88392"
+      ],
+      "related_reports": ["REF-2026-0001"],
+      "priority": "High",
+      "out_of_scope": [
+        "causality assessment",
+        "treatment recommendation",
+        "regulatory reportability decision"
+      ]
+    },
+    {
+      "solution_id": "SOL-003",
+      "product_name": "CardioSafe 10mg",
+      "batch_lot_number": "LOT-12045",
+      "issue": {
+        "category": "Packaging Integrity",
+        "keyword": "crushed carton",
+        "summary": "Shipper carton crushed; blister corners creased; count intact",
+        "example_user_phrases": [
+          "carton crushed",
+          "blister creased",
+          "shipping damage LOT-12045"
+        ]
+      },
+      "recommended_intake_action": [
+        "Save PQC intake",
+        "Quarantine implicated lot",
+        "Record damage extent in description",
+        "Notify Quality Desk"
+      ],
+      "related_documents": ["SOP-LOT-QUARANTINE-001"],
+      "related_reports": ["REF-2026-0005"],
+      "priority": "High",
+      "out_of_scope": ["medical advice"]
+    },
+    {
+      "solution_id": "SOL-004",
+      "product_name": "CardioSafe 10mg",
+      "batch_lot_number": "LOT-12045",
+      "issue": {
+        "category": "Suspected AE Pattern",
+        "keyword": "dizziness",
+        "summary": "Fictional historical notes mention transient dizziness after first doses",
+        "example_user_phrases": [
+          "dizziness after first dose",
+          "lightheaded after CardioSafe",
+          "difficulty with balance after tablet"
+        ]
+      },
+      "recommended_intake_action": [
+        "Capture Suspected Adverse Event",
+        "Require event description and onset date",
+        "Start status as New then allow In Review",
+        "Never assess causality or treatment in this app"
+      ],
+      "related_documents": ["SOP-AE-INTAKE-HANDLING-004"],
+      "related_reports": ["REF-2026-0002"],
+      "priority": "Medium",
+      "out_of_scope": [
+        "causality",
+        "treatment",
+        "antidote protocol"
+      ]
+    },
+    {
+      "solution_id": "SOL-007",
+      "product_name": "AllergyClear 5mg",
+      "batch_lot_number": "LOT-33018",
+      "issue": {
+        "category": "Packaging Integrity",
+        "keyword": "loose desiccant",
+        "summary": "Desiccant pouch found loose inside bottle; tablets visually intact",
+        "example_user_phrases": [
+          "desiccant loose in bottle",
+          "silica packet free inside",
+          "LOT-33018 packaging issue"
+        ]
+      },
+      "recommended_intake_action": [
+        "Save PQC",
+        "Quarantine lot",
+        "Notify Quality Desk",
+        "Document count intact / bottle intact"
+      ],
+      "related_documents": ["SOP-LOT-QUARANTINE-001"],
+      "related_reports": ["REF-2026-0007"],
+      "priority": "Medium",
+      "out_of_scope": ["clinical decisions"]
+    },
+    {
+      "solution_id": "SOL-009",
+      "product_name": "Any Product",
+      "batch_lot_number": "ANY-LOT",
+      "issue": {
+        "category": "Process",
+        "keyword": "missing mandatory fields",
+        "summary": "Operator submits incomplete intake form",
+        "example_user_phrases": [
+          "why did submit fail",
+          "missing required fields",
+          "validation error on AE form"
+        ]
+      },
+      "recommended_intake_action": [
+        "Reject save",
+        "Show context-sensitive field errors",
+        "Require core fields for all reports",
+        "For AE also require event description and onset date"
+      ],
+      "related_documents": ["SOP-INTAKE-MANDATORY-FIELDS-002"],
+      "related_reports": [],
+      "priority": "High",
+      "out_of_scope": []
+    },
+    {
+      "solution_id": "SOL-010",
+      "product_name": "Any Product",
+      "batch_lot_number": "ANY-LOT",
+      "issue": {
+        "category": "Process",
+        "keyword": "close without approval",
+        "summary": "Reviewer attempts In Review to Closed without HITL",
+        "example_user_phrases": [
+          "close case now",
+          "why cant I close",
+          "HITL required"
+        ]
+      },
+      "recommended_intake_action": [
+        "Block close",
+        "Require second-person HITL approval",
+        "Write hitl_approved audit event",
+        "Then set status Closed"
+      ],
+      "related_documents": ["SOP-STATUS-WORKFLOW-HITL-003"],
+      "related_reports": ["REF-2026-0003", "REF-2026-0009"],
+      "priority": "High",
+      "out_of_scope": []
+    }
+  ]
+}

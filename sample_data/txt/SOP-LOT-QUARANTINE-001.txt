@@ -1,0 +1,42 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL)
+Document ID: SOP-LOT-QUARANTINE-001
+Title: Lot Quarantine After Packaging Integrity Complaint
+Version: 1.0 (Training Prototype Only)
+Effective Date: 2026-01-15
+Classification: Synthetic / Non-Clinical / Non-Regulatory
+
+1. PURPOSE
+This fictional SOP describes intake-desk steps when a packaging integrity
+complaint is recorded for a finished pack. It does NOT assess medical
+causality, treatment, or regulatory reportability.
+
+2. SCOPE
+Applies only to fictional Product Quality Complaints involving:
+- broken seals
+- crushed cartons
+- damaged blisters
+- unreadable labels
+
+3. LOT IDENTIFIER FORMAT
+All lot numbers in this training system must follow: LOT-XXXXX
+Example: LOT-88392
+
+4. PROCEDURE
+4.1 Confirm the complaint is saved in the Intake Tracker with a REF-YYYY-XXXX ID.
+4.2 Record product name and batch/lot exactly as provided.
+4.3 Quarantine the implicated fictional lot within 4 business hours.
+4.4 Notify the fictional Quality Desk mailbox: qc-desk@novacure.example
+4.5 Add an audit note that quarantine was requested (training log only).
+4.6 Do not provide medical advice in intake notes.
+
+5. RELATED EXAMPLES
+- Packaging seal broken on NeuroCalm 50mg, LOT-88392
+- Crushed shipper for CardioSafe 10mg, LOT-12045
+
+6. OUT OF SCOPE
+- Causality assessment
+- Treatment recommendations
+- Regulatory submission decisions
+- Real patient personal data
+
+END OF DOCUMENT

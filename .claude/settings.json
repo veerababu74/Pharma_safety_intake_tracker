@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd backend && pytest*)",
+      "Bash(python .claude/hooks/*)",
+      "Bash(python .cursor/hooks/*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/governance_edit_audit.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

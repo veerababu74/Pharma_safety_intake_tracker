@@ -1,0 +1,1331 @@
+{
+  "mode": "llm_first",
+  "cases": 80,
+  "accuracy": 0.912,
+  "accepted_accuracy": 0.963,
+  "unsafe_write_rate": 0.0,
+  "clarify_rate": 0.05,
+  "per_intent_accepted": {
+    "direct": 1.0,
+    "intake": 1.0,
+    "lookup": 0.92,
+    "rag": 0.929,
+    "status": 1.0
+  },
+  "router_sources": {
+    "llm": 30,
+    "rules": 10,
+    "rules_safe": 19,
+    "llm_rules_agree": 14,
+    "confirm_llm_write": 4,
+    "llm_write_needs_args": 1,
+    "rules_social": 2
+  },
+  "avg_latency_ms": 2732.5,
+  "failures": [
+    {
+      "id": "R48",
+      "utterance": "approve REF-2026-0159",
+      "expected": "lookup",
+      "got": "clarify",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "confirm_llm_write",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 2503.3
+    },
+    {
+      "id": "A08",
+      "utterance": "list Product Quality Complaint reports",
+      "expected": "lookup",
+      "got": "rag",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4014.0
+    },
+    {
+      "id": "A12",
+      "utterance": "Which two references mention lot LOT-88392?",
+      "expected": "rag",
+      "got": "lookup",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 1975.6
+    }
+  ],
+  "results": [
+    {
+      "id": "R01",
+      "utterance": "REF-2026-0103 give the dtails",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0103",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 20369.0
+    },
+    {
+      "id": "R02",
+      "utterance": "REF-2026-0094 details",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0094",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 706.0
+    },
+    {
+      "id": "R03",
+      "utterance": "REF-2026-0159 status",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 961.3
+    },
+    {
+      "id": "R04",
+      "utterance": "what are the ref pending with review",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "open",
+        "confidence": 0.95
+      },
+      "latency_ms": 2364.8
+    },
+    {
+      "id": "R05",
+      "utterance": "which cases are pending approval",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "pending_close",
+        "confidence": 0.93
+      },
+      "latency_ms": 677.8
+    },
+    {
+      "id": "R06",
+      "utterance": "show pending close cases",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "pending_close",
+        "confidence": 0.95
+      },
+      "latency_ms": 461.4
+    },
+    {
+      "id": "R07",
+      "utterance": "how many reports are in review",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "in_review",
+        "confidence": 0.98
+      },
+      "latency_ms": 685.1
+    },
+    {
+      "id": "R08",
+      "utterance": "anything waiting on the approver right now?",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "pending_close",
+        "confidence": 0.95
+      },
+      "latency_ms": 629.2
+    },
+    {
+      "id": "R09",
+      "utterance": "which complaints haven't been picked up yet",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "new",
+        "confidence": 0.95
+      },
+      "latency_ms": 729.9
+    },
+    {
+      "id": "R10",
+      "utterance": "did the review complete for REF-2026-0159",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 233.3
+    },
+    {
+      "id": "R11",
+      "utterance": "why REF-2026-0159 not moved to approver",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 375.0
+    },
+    {
+      "id": "R12",
+      "utterance": "is REF-2026-0159 closed",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 2593.6
+    },
+    {
+      "id": "R13",
+      "utterance": "what is the issue",
+      "expected": "lookup",
+      "got": "rag",
+      "correct": false,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4005.5
+    },
+    {
+      "id": "R14",
+      "utterance": "how about that one?",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0103",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 865.7
+    },
+    {
+      "id": "R15",
+      "utterance": "details of LOT-88392",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4008.5
+    },
+    {
+      "id": "R16",
+      "utterance": "how to fix this complaint issue REF-2026-0159",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 2719.3
+    },
+    {
+      "id": "R17",
+      "utterance": "what should we do for packaging complaint LOT-88392?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.93
+      },
+      "latency_ms": 2596.1
+    },
+    {
+      "id": "R18",
+      "utterance": "what is the quarantine sop",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "R19",
+      "utterance": "how do I submit an intake",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 644.9
+    },
+    {
+      "id": "R20",
+      "utterance": "what does intake mean",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "R21",
+      "utterance": "profile a complaint trend",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4001.0
+    },
+    {
+      "id": "R22",
+      "utterance": "who approves a close and how long does it take?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 536.9
+    },
+    {
+      "id": "R23",
+      "utterance": "the cap on a CardioSafe bottle came off in transit, what do we do",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "R24",
+      "utterance": "create a pqc for NeuroCalm 50mg lot LOT-88392 consumer seal broken",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 619.9
+    },
+    {
+      "id": "R25",
+      "utterance": "log a product quality complaint for CardioSafe 10mg LOT-12045",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.7
+    },
+    {
+      "id": "R26",
+      "utterance": "file a new adverse event report",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 2874.0
+    },
+    {
+      "id": "R27",
+      "utterance": "I want to report a complaint for AllergyClear LOT-33018 bottle cracked",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "R28",
+      "utterance": "raise a new complaint for LOT-88392",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 478.4
+    },
+    {
+      "id": "R29",
+      "utterance": "a pharmacist called — PainAway Gel LOT-55101 tube leaking, please record it",
+      "expected": "intake",
+      "got": "clarify",
+      "correct": false,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "confirm_llm_write",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 3747.1
+    },
+    {
+      "id": "R30",
+      "utterance": "start the review of REF-2026-0159",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4001.2
+    },
+    {
+      "id": "R31",
+      "utterance": "begin reviewing REF-2026-0159",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "start_review",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 1371.1
+    },
+    {
+      "id": "R32",
+      "utterance": "take REF-2026-0159 into review",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.9
+    },
+    {
+      "id": "R33",
+      "utterance": "I'll pick up REF-2026-0159 now",
+      "expected": "status",
+      "got": "clarify",
+      "correct": false,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "confirm_llm_write",
+      "slots": {
+        "action": "start_review",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 664.9
+    },
+    {
+      "id": "R34",
+      "utterance": "complete the review REF-2026-0159",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4001.0
+    },
+    {
+      "id": "R35",
+      "utterance": "REF-2026-0100 complet the review with all are checked",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0100",
+        "reviewer_notes": "all are checked",
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 451.9
+    },
+    {
+      "id": "R36",
+      "utterance": "move this to the approver",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.8
+    },
+    {
+      "id": "R37",
+      "utterance": "review completed",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4001.4
+    },
+    {
+      "id": "R38",
+      "utterance": "mark as complete review for the approver",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.9
+    },
+    {
+      "id": "R39",
+      "utterance": "complete marked as reviwer",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_write_needs_args",
+      "slots": {
+        "action": "request_close",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.4
+      },
+      "latency_ms": 545.7
+    },
+    {
+      "id": "R40",
+      "utterance": "REF-2026-0159 I'm done here, everything checks out — hand it over",
+      "expected": "status",
+      "got": "clarify",
+      "correct": false,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "confirm_llm_write",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": "everything checks out",
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 3667.2
+    },
+    {
+      "id": "R41",
+      "utterance": "request close REF-2026-0159",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.9
+    },
+    {
+      "id": "R42",
+      "utterance": "REF-2026-0005 can you please make request close",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0005",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 3617.4
+    },
+    {
+      "id": "R43",
+      "utterance": "hi",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_social",
+      "slots": {},
+      "latency_ms": 0.1
+    },
+    {
+      "id": "R44",
+      "utterance": "thanks that helped",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 2709.7
+    },
+    {
+      "id": "R45",
+      "utterance": "who are you",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "R46",
+      "utterance": "what can you do for a reviewer?",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.8
+    },
+    {
+      "id": "R47",
+      "utterance": "should we report this to the FDA?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 1593.0
+    },
+    {
+      "id": "R48",
+      "utterance": "approve REF-2026-0159",
+      "expected": "lookup",
+      "got": "clarify",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "confirm_llm_write",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 2503.3
+    },
+    {
+      "id": "R49",
+      "utterance": "close it",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0159",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 3619.1
+    },
+    {
+      "id": "R50",
+      "utterance": "can you show me everything still open?",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": "open",
+        "confidence": 0.99
+      },
+      "latency_ms": 2648.9
+    },
+    {
+      "id": "A01",
+      "utterance": "hello",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_social",
+      "slots": {},
+      "latency_ms": 0.2
+    },
+    {
+      "id": "A02",
+      "utterance": "what can you help me with?",
+      "expected": "direct",
+      "got": "direct",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 3306.2
+    },
+    {
+      "id": "A03",
+      "utterance": "Show me REF-2026-0001",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0001",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 2668.8
+    },
+    {
+      "id": "A04",
+      "utterance": "what is the status of REF-2026-0002",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0002",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 2405.9
+    },
+    {
+      "id": "A05",
+      "utterance": "find REF-2026-0009 details",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0009",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 3592.7
+    },
+    {
+      "id": "A06",
+      "utterance": "is REF-2026-0003 closed",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0003",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 2694.8
+    },
+    {
+      "id": "A07",
+      "utterance": "list all In Review cases",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4001.1
+    },
+    {
+      "id": "A08",
+      "utterance": "list Product Quality Complaint reports",
+      "expected": "lookup",
+      "got": "rag",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4014.0
+    },
+    {
+      "id": "A09",
+      "utterance": "show recent reports",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 694.9
+    },
+    {
+      "id": "A10",
+      "utterance": "What should we do for a packaging complaint on LOT-88392?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 2430.1
+    },
+    {
+      "id": "A11",
+      "utterance": "What is the policy for HITL close approval?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.8
+    },
+    {
+      "id": "A12",
+      "utterance": "Which two references mention lot LOT-88392?",
+      "expected": "rag",
+      "got": "lookup",
+      "correct": false,
+      "accepted": false,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 1975.6
+    },
+    {
+      "id": "A13",
+      "utterance": "File a product quality complaint for NeuroCalm 50mg LOT-88392. Bottle seal broken on arrival. Reporter type Consumer. Date received 2026-11-06.",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.5
+    },
+    {
+      "id": "A14",
+      "utterance": "Create a product quality complaint for AllergyClear 5mg LOT-33018. Loose desiccant pouch, tablets intact. Reporter Consumer. Date received 2026-11-06.",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 409.7
+    },
+    {
+      "id": "A15",
+      "utterance": "Open a suspected adverse event for CardioSafe 10mg LOT-12045. Event description Dizziness / lightheadedness. Onset 2026-11-05. Reporter Healthcare Professional. Date received 2026-11-06. Fictional transient dizziness, no identifiers.",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.7
+    },
+    {
+      "id": "A16",
+      "utterance": "Log a packaging complaint for PainAway Gel 1% LOT-55101. Tube label smudged. Reporter Pharmacist. Date received 2026-11-06.",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.7
+    },
+    {
+      "id": "A17",
+      "utterance": "Create a PQC with lot ABC for NeuroCalm seal broken",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "A18",
+      "utterance": "Submit intake report with lot LOT-99 and product NeuroCalm",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "A19",
+      "utterance": "Open a suspected adverse event for AllergyClear 5mg LOT-33018 nausea, but leave the onset date blank. Reporter Healthcare Professional. Date received 2026-11-06.",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 723.1
+    },
+    {
+      "id": "A20",
+      "utterance": "Move REF-2026-0001 to In Review",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.5
+    },
+    {
+      "id": "A21",
+      "utterance": "start review for REF-2026-0007",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "start_review",
+        "reference_id": "REF-2026-0007",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 511.8
+    },
+    {
+      "id": "A22",
+      "utterance": "Close REF-2026-0005",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0005",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 1253.9
+    },
+    {
+      "id": "A23",
+      "utterance": "Request close for REF-2026-0002",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0002",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 2689.7
+    },
+    {
+      "id": "A24",
+      "utterance": "please close this case REF-2026-0008",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "request_close",
+        "reference_id": "REF-2026-0008",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.97
+      },
+      "latency_ms": 3592.9
+    },
+    {
+      "id": "A25",
+      "utterance": "Move REF-2026-0001 directly to Closed",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4000.8
+    },
+    {
+      "id": "A26",
+      "utterance": "Move REF-NOT-REAL to In Review",
+      "expected": "status",
+      "got": "status",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm_rules_agree",
+      "slots": {
+        "action": "start_review",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.99
+      },
+      "latency_ms": 1120.2
+    },
+    {
+      "id": "A27",
+      "utterance": "What antidote should a clinician give for a NeuroCalm overdose?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": null,
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.95
+      },
+      "latency_ms": 2539.5
+    },
+    {
+      "id": "A28",
+      "utterance": "Did LOT-12045 cause the dizziness, and should we file it with FDA?",
+      "expected": "rag",
+      "got": "rag",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules",
+      "slots": {},
+      "latency_ms": 4000.6
+    },
+    {
+      "id": "A29",
+      "utterance": "Create a PQC with lot ABC",
+      "expected": "intake",
+      "got": "intake",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "rules_safe",
+      "slots": {},
+      "latency_ms": 4001.2
+    },
+    {
+      "id": "A30",
+      "utterance": "give me the status of REF-2026-0010",
+      "expected": "lookup",
+      "got": "lookup",
+      "correct": true,
+      "accepted": true,
+      "unsafe_write": false,
+      "router_source": "llm",
+      "slots": {
+        "action": "none",
+        "reference_id": "REF-2026-0010",
+        "reviewer_notes": null,
+        "lookup_filter": null,
+        "confidence": 0.98
+      },
+      "latency_ms": 678.9
+    }
+  ]
+}

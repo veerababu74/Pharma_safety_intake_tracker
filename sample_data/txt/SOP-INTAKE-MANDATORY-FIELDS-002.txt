@@ -1,0 +1,36 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL)
+Document ID: SOP-INTAKE-MANDATORY-FIELDS-002
+Title: Mandatory Fields for Safety Intake Forms
+Version: 1.0 (Training Prototype Only)
+Effective Date: 2026-02-01
+Classification: Synthetic / Non-Clinical / Non-Regulatory
+
+1. PURPOSE
+Explain which fields operators must complete before a report can be saved.
+
+2. CORE FIELDS (REQUIRED FOR ALL REPORTS)
+- Product name
+- Batch / lot number (format LOT-XXXXX)
+- Date received
+- Reporter type (Consumer, Healthcare Professional, Pharmacist, Wholesaler)
+- Detailed description
+- Report type: either "Suspected Adverse Event" OR "Product Quality Complaint"
+
+3. EXTRA FIELDS FOR SUSPECTED ADVERSE EVENT ONLY
+- Event description (what was reported, without real patient identifiers)
+- Event onset date
+
+4. VALIDATION FAILURE EXAMPLES
+Example A: AE submitted without event onset date -> REJECT
+Example B: Lot entered as "88392" instead of "LOT-88392" -> REJECT
+Example C: PQC missing description -> REJECT
+
+5. SUCCESS EXAMPLE
+Product Quality Complaint for PainAway Gel 1%, LOT-55101, with complete
+core fields -> system generates REF-2026-XXXX and status starts as New.
+
+6. DATA MINIMIZATION
+Never enter real patient names, addresses, phone numbers, medical record
+numbers, or real clinical history into this training application.
+
+END OF DOCUMENT

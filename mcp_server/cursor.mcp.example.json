@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "novacure-pharma-intake": {
+      "command": "C:/Users/pveer/OneDrive/Desktop/pwc_capstone/backend/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/pveer/OneDrive/Desktop/pwc_capstone/mcp_server/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/pveer/OneDrive/Desktop/pwc_capstone/backend"
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "modes": "both",
+  "classic": {
+    "mode": "classic",
+    "n_cases": 4,
+    "k": 5,
+    "metrics": {
+      "precision@k": 0.4583,
+      "recall@k": 0.75,
+      "mrr": 0.75,
+      "ndcg@k": 0.75,
+      "hit_rate@k": 0.75,
+      "answer_f1": 0.6363,
+      "grounding_overlap": 0.4451,
+      "refusal_accuracy": 1.0
+    }
+  },
+  "ragas": {
+    "mode": "heuristic",
+    "n_cases": 4,
+    "metrics": {
+      "faithfulness": 0.6951,
+      "answer_relevancy": 0.5409,
+      "context_precision": 0.7083,
+      "context_recall": 1.0,
+      "answer_correctness": 0.6363
+    },
+    "per_case": [
+      {
+        "id": "packaging_quarantine",
+        "faithfulness": 0.75,
+        "answer_relevancy": 0.6032,
+        "context_precision": 0.6667,
+        "context_recall": 1.0,
+        "answer_correctness": 0.7097
+      },
+      {
+        "id": "intake_mandatory_fields",
+        "faithfulness": 0.6667,
+        "answer_relevancy": 0.5343,
+        "context_precision": 0.6667,
+        "context_recall": 1.0,
+        "answer_correctness": 0.6286
+      },
+      {
+        "id": "medical_refusal",
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6375,
+        "context_precision": 1.0,
+        "context_recall": 1.0,
+        "answer_correctness": 0.75
+      },
+      {
+        "id": "status_workflow",
+        "faithfulness": 0.3636,
+        "answer_relevancy": 0.3886,
+        "context_precision": 0.5,
+        "context_recall": 1.0,
+        "answer_correctness": 0.4571
+      }
+    ],
+    "note": "Heuristic RAGAS-like scores (no LLM judge)."
+  }
+}

@@ -1,0 +1,4 @@
+# Install into the backend venv so `app.*` imports resolve:
+#   cd backend && .\.venv\Scripts\activate
+#   pip install -r ..\mcp_server\requirements.txt
+fastmcp>=2.0.0

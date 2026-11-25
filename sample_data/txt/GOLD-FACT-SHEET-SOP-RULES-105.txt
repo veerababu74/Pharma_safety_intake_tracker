@@ -1,0 +1,46 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL / SYNTHETIC)
+Document ID: GOLD-FACT-SHEET-SOP-RULES-105
+Title: Golden SOP rule sheet for intake, quarantine, HITL, agent, and retrieval
+Version: 1.0 | Classification: Synthetic / Non-Clinical
+Purpose: One short source of unique rules so hybrid RAG can answer policy questions without inventing clinical or regulatory decisions.
+
+RULE QUARANTINE-HOURS
+For a packaging Product Quality Complaint that cites a valid lot, create a fictional quarantine ticket within 4 business hours of intake save. Notify the fictional mailbox qc-desk@novacure.example and record the REF identifier in the local audit trail. This rule is stated in SOP-LOT-QUARANTINE-PACKAGING-101.
+
+RULE LOT-FORMAT
+A valid batch or lot identifier matches the pattern LOT- followed by exactly five digits, written LOT-#####. Examples that pass: LOT-88392, LOT-12045, LOT-33018, LOT-55101, LOT-88401, LOT-12099. Examples that fail validation: ABC, LOT-99, LOT-8839.
+
+RULE MANDATORY-FIELDS
+Every intake row requires report type, product name, batch/lot, date received, reporter type, and description. Allowed report types are exactly Suspected Adverse Event and Product Quality Complaint.
+
+RULE AE-EXTRA-FIELDS
+A Suspected Adverse Event additionally requires event description and event onset date. A Product Quality Complaint does not require those two fields. Still do not store real patient names, phone numbers, addresses, or medical record numbers.
+
+RULE STATUS-MACHINE
+Allowed status path is New, then In Review, then Closed. Moving New directly to Closed is illegal and must be rejected. Closed is terminal in this prototype. Reject-close returns the case to In Review and does not close it.
+
+RULE HITL-CLOSE
+A transition from In Review to Closed requires Human-in-the-Loop approval. A reviewer may request close. An approver must approve or reject. The agent must pause on close until that human decision is recorded. State stays frozen until the approver acts.
+
+RULE ROLES
+Operator creates intake. Reviewer triages and requests close. Approver approves or rejects pending close and agent HITL interrupts. Admin can ingest and delete knowledge documents. Demo display names used in training notes are Maya and Priya for triage and Sam for HITL close approval. Those names are fictional role labels, not real people.
+
+RULE AGENT-INTENTS
+Agent router labels are direct, rag, intake, status, and lookup. A greeting such as hello is direct and calls no tool. An SOP or historical question uses hybrid_rag_query. A new submission uses submit_intake_report. A status change uses update_status. Fetching one REF uses get_report. Filtering the board uses list_reports.
+
+RULE CIRCUIT-BREAKER
+If the agent calls the same tool with the same invalid arguments more than 2 consecutive times, the circuit breaker opens and halts that loop. A typical trigger is batch lot ABC, which fails the LOT-##### check.
+
+RULE RETRIEVAL-PIPELINE
+Hybrid retrieval runs lexical BM25 with k1 equal to 1.35 and b equal to 0.75, then dense cosine search, then Reciprocal Rank Fusion with constant k equal to 60 over the top 50 from each list, then a cross-encoder rerank. Chunks below relevance 0.40 are dropped. Generation receives only the top 3 to 5 remaining chunks. If none pass, the answer is insufficient evidence.
+
+RULE REFUSAL-BOUNDARY
+The tracker must refuse questions that ask for causality, a treatment or antidote, or a regulatory reportability decision. The correct reply is insufficient evidence plus the non-clinical boundary. Do not invent an FDA determination.
+
+RULE PACKAGING-DEMOS
+Broken seal on NeuroCalm 50mg LOT-88392 maps to REF-2026-0001 and the 4 business hour quarantine rule. Crushed shipper on CardioSafe 10mg LOT-12045 maps to REF-2026-0005. Loose desiccant on AllergyClear 5mg LOT-33018 maps to REF-2026-0007. Smudged tube label on PainAway Gel 1% LOT-55101 maps to REF-2026-0003. Carton count 28 instead of 30 on NeuroCalm 50mg LOT-88401 maps to REF-2026-0009.
+
+RULE PRODUCT-CATALOG
+NeuroCalm 50mg is product code NC-50, tablet, pack size 30. CardioSafe 10mg is product code CS-10, tablet, pack size 28. AllergyClear 5mg is product code AC-5, tablet, pack size 30. PainAway Gel 1% is product code PA-1, topical gel, pack size 50g. All dates and lots in this catalog are fictional.
+
+END OF DOCUMENT — Synthetic data only. No real PII. No causality assessment, treatment advice, or regulatory reportability decisions.

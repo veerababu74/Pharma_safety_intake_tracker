@@ -1,0 +1,58 @@
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+backend/.venv/
+.venv/
+venv/
+
+# Secrets — never commit
+backend/.env
+frontend/.env
+.env
+**/.env.local
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# Logs
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local agent / editor noise (keep governance evidence if useful — exclude huge caches)
+**/.DS_Store
+
+# NOTE: backend/data (SQLite DBs, uploads, chroma, faiss) IS tracked for the training demo
+# Exception: local Hub weights for sentence-transformers / cross-encoder — never push
+backend/data/embedding_models/
+**/embedding_models/
+
+# SQLite WAL sidecars (runtime only)
+*.sqlite-shm
+*.sqlite-wal
+**/*-shm
+**/*-wal
+
+# Local-only architecture / scenario / walkthrough docs — never push
+never_push_to_git/

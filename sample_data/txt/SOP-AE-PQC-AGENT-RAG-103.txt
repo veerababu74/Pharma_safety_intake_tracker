@@ -1,0 +1,90 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL / SYNTHETIC)
+SOP-AE-PQC-AGENT-RAG-103: AE/PQC Handling, Agent Guardrails, and Knowledge Retrieval
+Version 2.0 | Effective 2026-04-10 | Classification: Synthetic / Non-Clinical
+
+1. Purpose
+Combine Suspected Adverse Event (AE) intake notes, Product Quality Complaint (PQC) handling, agent router guardrails, and hybrid RAG expectations into one long training document for upload demos.
+2. AE handling (fictional)
+Capture event description and onset date. Do not assess causality. Do not recommend treatment. Do not decide reportability. Example training case: REF-2026-0002 CardioSafe 10mg LOT-12045 dizziness report.
+3. Agent intents
+Greeting → direct reply. SOP/history question → Hybrid RAG. New submission → submit_intake_report. Status change → update_status with validation. Close from In Review → HITL interrupt until approver resolves.
+4. Retrieval pipeline
+BM25 + dense retrieval fused with Reciprocal Rank Fusion (k=60), then cross-encoder / configured rerank. Drop weak chunks below the configured threshold. Pass only top grounded snippets to generation. If nothing passes, return insufficient evidence — never invent SOPs.
+5. Circuit breaker
+Repeated identical invalid tool arguments (for example lot=ABC failing LOT-##### validation) open the breaker after consecutive failures and halt the agent loop for that turn.
+
+--- Detailed training pages ---
+
+=== PAGE 1 of 4 ===
+
+This page continues the fictional NovaCure training material for 'adverse event PQC agent guardrails and hybrid RAG retrieval'. Product names, lots, REF IDs, mailboxes, and operator names are invented for local demos of intake, triage, audit, hybrid RAG, and governed agent tooling.
+
+Section 1.1 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000101 and LOT-80101. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 1.1: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 1.1: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Section 1.2 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000102 and LOT-80102. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 1.2: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 1.2: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Page 1 summary: local SQLite only, synthetic data only, HITL for close, hybrid retrieval (BM25 + dense + RRF + rerank), no prohibited clinical decisions.
+
+=== PAGE 2 of 4 ===
+
+This page continues the fictional NovaCure training material for 'adverse event PQC agent guardrails and hybrid RAG retrieval'. Product names, lots, REF IDs, mailboxes, and operator names are invented for local demos of intake, triage, audit, hybrid RAG, and governed agent tooling.
+
+Section 2.1 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000201 and LOT-80201. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 2.1: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 2.1: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Section 2.2 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000202 and LOT-80202. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 2.2: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 2.2: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Page 2 summary: local SQLite only, synthetic data only, HITL for close, hybrid retrieval (BM25 + dense + RRF + rerank), no prohibited clinical decisions.
+
+=== PAGE 3 of 4 ===
+
+This page continues the fictional NovaCure training material for 'adverse event PQC agent guardrails and hybrid RAG retrieval'. Product names, lots, REF IDs, mailboxes, and operator names are invented for local demos of intake, triage, audit, hybrid RAG, and governed agent tooling.
+
+Section 3.1 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000301 and LOT-80301. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 3.1: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 3.1: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Section 3.2 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000302 and LOT-80302. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 3.2: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 3.2: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Page 3 summary: local SQLite only, synthetic data only, HITL for close, hybrid retrieval (BM25 + dense + RRF + rerank), no prohibited clinical decisions.
+
+=== PAGE 4 of 4 ===
+
+This page continues the fictional NovaCure training material for 'adverse event PQC agent guardrails and hybrid RAG retrieval'. Product names, lots, REF IDs, mailboxes, and operator names are invented for local demos of intake, triage, audit, hybrid RAG, and governed agent tooling.
+
+Section 4.1 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000401 and LOT-80401. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 4.1: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 4.1: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Section 4.2 — Operators capture Product Quality Complaints and Suspected Adverse Events with synthetic IDs such as REF-2026-000402 and LOT-80402. Demo products include NeuroCalm 50mg, CardioSafe 10mg, AllergyClear 5mg, and PainAway Gel. Never store real patient names, phones, addresses, or medical record numbers.
+
+Checklist 4.2: (A) report type PQC or AE; (B) lot matches LOT-#####; (C) date received present; (D) reporter type set; (E) factual description only — no treatment advice or causality language. Maya/Priya triage on the Dashboard; Sam approves HITL close. Illegal New→Closed transitions are rejected. Audit stores create, status_change, hitl_*, document_ingested, and agent tool events.
+
+RAG note 4.2: For packaging questions on LOT-88392, ground on quarantine within 4 business hours and qc-desk@novacure.example (fictional). Prefer citing this SOP over invented clinical or regulatory conclusions. If retrieval is empty, return insufficient evidence.
+
+Page 4 summary: local SQLite only, synthetic data only, HITL for close, hybrid retrieval (BM25 + dense + RRF + rerank), no prohibited clinical decisions.
+
+END OF DOCUMENT — Synthetic data only. No real PII. No causality assessment, treatment advice, or regulatory reportability decisions.

@@ -1,0 +1,126 @@
+{
+  "generated_at": "2026-11-06T14:06:23.451252+00:00",
+  "target": "http://127.0.0.1:8000/api/v1",
+  "profile": {
+    "username": "reviewer",
+    "workers_note": "Single local API process. SQLite writes are serialized.",
+    "intake_count": 15,
+    "rag_count": 4,
+    "skip_rag": false,
+    "disclaimer": "Training-machine probe only. Do not treat these numbers as production capacity. RAG latency includes retrieval plus the configured LLM."
+  },
+  "findings": [
+    "Health, list, get, and the 4 RAG queries returned HTTP 200.",
+    "create_report at 3 concurrent writers failed 8 of 15 requests. Server log: sqlite3.IntegrityError UNIQUE constraint failed on reports.reference_id. _next_reference_id reads the latest REF and adds 1, so overlapping creates pick the same id.",
+    "3 of those failures were connection resets (WinError 10054) while the API was handling the constraint errors.",
+    "RAG p50 was about 3.5 seconds because each query rebuilds BM25 and calls the configured LLM. Throughput was 0.28 requests per second on this machine."
+  ],
+  "scenarios": [
+    {
+      "scenario": "health",
+      "requests": 40,
+      "ok": 40,
+      "errors": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 0.049,
+      "throughput_rps": 812.76,
+      "latency_ms": {
+        "min": 4.4,
+        "p50": 10.5,
+        "p95": 14.5,
+        "max": 15.8,
+        "mean": 10.7
+      },
+      "status_counts": {
+        "200": 40
+      },
+      "sample_errors": []
+    },
+    {
+      "scenario": "list_reports",
+      "requests": 30,
+      "ok": 30,
+      "errors": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 0.331,
+      "throughput_rps": 90.64,
+      "latency_ms": {
+        "min": 28.1,
+        "p50": 63.8,
+        "p95": 99.8,
+        "max": 105.7,
+        "mean": 64.7
+      },
+      "status_counts": {
+        "200": 30
+      },
+      "sample_errors": []
+    },
+    {
+      "scenario": "create_report",
+      "requests": 15,
+      "ok": 7,
+      "errors": 8,
+      "error_rate": 0.5333,
+      "wall_seconds": 0.52,
+      "throughput_rps": 28.83,
+      "latency_ms": {
+        "min": 1.1,
+        "p50": 44.5,
+        "p95": 363.5,
+        "max": 382.2,
+        "mean": 100.2
+      },
+      "status_counts": {
+        "200": 7,
+        "500": 5,
+        "0": 3
+      },
+      "sample_errors": [
+        "Internal Server Error",
+        "ReadError: [WinError 10054] An existing connection was forcibly closed by the remote host",
+        "Internal Server Error"
+      ]
+    },
+    {
+      "scenario": "get_report",
+      "requests": 15,
+      "ok": 15,
+      "errors": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 0.187,
+      "throughput_rps": 80.15,
+      "latency_ms": {
+        "min": 18.5,
+        "p50": 50.0,
+        "p95": 82.9,
+        "max": 83.1,
+        "mean": 57.2
+      },
+      "status_counts": {
+        "200": 15
+      },
+      "sample_errors": []
+    },
+    {
+      "scenario": "rag_query",
+      "requests": 4,
+      "ok": 4,
+      "errors": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 14.075,
+      "throughput_rps": 0.28,
+      "latency_ms": {
+        "min": 2685.5,
+        "p50": 3545.6,
+        "p95": 4283.0,
+        "max": 4298.0,
+        "mean": 3518.7
+      },
+      "status_counts": {
+        "200": 4
+      },
+      "sample_errors": []
+    }
+  ]
+}

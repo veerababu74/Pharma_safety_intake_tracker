@@ -1,0 +1,28 @@
+NovaCure Pharma — TRAINING DOCUMENT (FICTIONAL)
+Document ID: PAST-REPORT-DIGEST-LOT-88392
+Title: Historical Digest for LOT-88392 (Synthetic)
+Version: 1.0
+Classification: Synthetic / Non-Clinical / Non-Regulatory
+
+SUMMARY
+This digest aggregates fictional past intake mentions of lot LOT-88392
+for Hybrid RAG demos. It is not a regulatory case file.
+
+RELATED REFERENCES
+- REF-2026-0001 | Product Quality Complaint | NeuroCalm 50mg | Broken bottle seal
+- REF-2026-0004 | Suspected Adverse Event | NeuroCalm 50mg | Mild headache (fictional)
+
+COMMON THEMES IN TRAINING DATA
+1. Packaging integrity concerns around the bottle seal / cap ring.
+2. One unrelated fictional consumer AE mentioning mild headache.
+3. No causality conclusion is recorded in this system.
+4. Operators must avoid storing real personal identifiers.
+
+SUGGESTED INTAKE NOTES STYLE (TRAINING)
+"Packaging complaint for NeuroCalm 50mg LOT-88392. Seal broken on arrival.
+Count appears complete. Quarantine request to be logged per SOP-LOT-QUARANTINE-001."
+
+SEARCH KEYWORDS FOR RAG DEMOS
+LOT-88392, NeuroCalm, seal broken, packaging, quarantine, REF-2026-0001
+
+END OF DOCUMENT
